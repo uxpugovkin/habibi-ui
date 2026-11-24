@@ -4,8 +4,9 @@
 
 	Where things live:
 	  - the TEXT of the rules      src/lib/components/table/guidelines.js   (edit rules there)
-	  - the EXAMPLES               this file, one snippet per rule, listed in `examples` below
+	  - the EXAMPLES               this file, one snippet per rule, listed in `exampleFor` below
 	  - the example table itself   ./TableExample.svelte  (the "Employees" table from Figma)
+	  - the page layout            ../Guide.svelte (banners, numbered rules, example boxes)
 
 	To give a rule an example: write a snippet at the bottom of this file and add
 	a line to `examples` with the rule's id.
@@ -16,8 +17,9 @@
 	import TableExample from './TableExample.svelte';
 	import AnatomyExample from './AnatomyExample.svelte';
 	import AppFrame from './AppFrame.svelte';
+	import Guide from '../Guide.svelte';
 	import { content } from '../content.js';
-	import { pick, examples, directionOf } from '../examples.svelte.js';
+	import { pick, examples } from '../examples.svelte.js';
 
 	// rule id → the snippet that shows it. Rules without a line here have no example.
 	const exampleFor = {
@@ -54,48 +56,7 @@
 	<title>Table guidelines · Habibi UI</title>
 </svelte:head>
 
-<!-- When the examples language changes, the guide is made again from scratch,
-     so every example starts over with its texts in the new language. -->
-{#key examples.lang}
-	<article class="guide">
-		{#each tableGuidelines as chapter}
-			<!-- One chapter = one page of the Figma guide: a dark banner, then its rules. -->
-			<section class="chapter">
-				<header class="hero">
-					<h2 class="hb-text-display-b">{chapter.title}</h2>
-					<p class="hb-text-body-b">{chapter.about}</p>
-				</header>
-
-				{#each chapter.rules as rule}
-					<!-- "1.2" → "02". The intro rule of a chapter ("1.0") has no number and a bigger title. -->
-					{@const number = rule.id.split('.')[1].padStart(2, '0')}
-					{@const isIntro = number === '00'}
-
-					<section class="rule" id="rule-{rule.id}">
-						<div class="rule__text">
-							{#if !isIntro}<span class="rule__number hb-text-code-s">{number}</span>{/if}
-							<h3 class={isIntro ? 'hb-text-h1' : 'hb-text-h3'}>{rule.title}</h3>
-							{#each rule.text as line}
-								<p class="hb-text-body-b">{line}</p>
-							{/each}
-							{#if rule.code}
-								<p class="rule__code hb-text-body-d">
-									<strong>In code:</strong> <code>{rule.code}</code>
-								</p>
-							{/if}
-						</div>
-
-						{#if exampleFor[rule.id]}
-							<div class="rule__example" lang={examples.lang} dir={directionOf(examples.lang)}>
-								{@render exampleFor[rule.id]()}
-							</div>
-						{/if}
-					</section>
-				{/each}
-			</section>
-		{/each}
-	</article>
-{/key}
+<Guide chapters={tableGuidelines} {exampleFor} />
 
 <!-- ════════════════════════ THE EXAMPLES ════════════════════════
      One snippet per rule, in the order of the rules.
@@ -244,81 +205,8 @@
 {/snippet}
 
 <style>
-	/* The sizes below are the ones of the Figma guide:
-	   a 1216px column; texts are 760px wide and centred in it; examples use the full width. */
-	.guide {
-		display: flex;
-		flex-direction: column;
-		gap: 96px;
-		max-width: 1216px;
-		margin: 0 auto;
-	}
-	h2,
-	h3,
-	h4,
-	p {
+	h4 {
 		margin: 0;
-	}
-
-	/* ---------- Chapter: banner + rules, 72px apart ---------- */
-	.chapter {
-		display: flex;
-		flex-direction: column;
-		gap: 72px;
-	}
-	.hero {
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-		min-height: 200px;
-		padding: 36px 40px 40px;
-		border-radius: var(--radius-l);
-		background: var(--uncolorful-grey-primary);
-		color: var(--uncolorful-grey-surface);
-	}
-
-	/* ---------- One rule: its text, then (24px lower) its example ---------- */
-	.rule {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 24px;
-		/* When you jump here from a link, leave room for the sticky top bar. */
-		scroll-margin-top: 72px;
-	}
-	.rule__text {
-		position: relative; /* the number hangs off its side */
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-		width: 100%;
-		max-width: 760px;
-	}
-	.rule__text h3 {
-		color: var(--uncolorful-grey-extra);
-	}
-	/* The small "01" sits in the margin, in front of the title. */
-	.rule__number {
-		position: absolute;
-		top: 4px;
-		inset-inline-end: calc(100% + 8px);
-		color: var(--uncolorful-grey-tertiary);
-	}
-	.rule__code {
-		color: var(--uncolorful-grey-secondary);
-	}
-	.rule__code code {
-		font: var(--text-code-s);
-	}
-
-	/* The bordered white box around a whole example. */
-	.rule__example {
-		width: 100%;
-		padding: 16px;
-		border: 1px solid var(--uncolorful-grey-border);
-		border-radius: var(--radius-l);
-		background: var(--uncolorful-grey-surface);
-		overflow: hidden; /* keeps the app-window examples inside the rounded corners */
 	}
 
 	/* ---------- Bits of the fake pages in "Button placement" ---------- */

@@ -5,8 +5,10 @@
    screen or a prototype has a table.
 
    Source: Figma → habibi-library → page "Tables Guide".
-   This file is the single copy of the TEXT in code. The docs page /ds/tables
-   reads it and puts a live example under every rule.
+   This file is the single copy of the TEXT in code. Two docs pages read it and
+   put a live example under every rule:
+     tableGuidelines           → /ds/tables
+     tableSettingsGuidelines   → /ds/table-settings  (the guide's "Appendix A")
 
    How it is organised:
      chapters → each has a few rules
@@ -17,7 +19,8 @@
    languages they swap by themselves.
 
    To change a rule, edit it here. If you add a rule, give it a new id; to give
-   it an example, add one with the same id in src/routes/ds/tables/+page.svelte.
+   it an example, add one with the same id on its docs page
+   (src/routes/ds/tables/+page.svelte or src/routes/ds/table-settings/+page.svelte).
    ========================================================================== */
 
 export const tableGuidelines = [
@@ -237,6 +240,43 @@ export const tableGuidelines = [
 				title: 'Conflicts with pagination',
 				text: ['The person can select all rows on the page, or all rows that exist.'],
 				code: '<Table allRows={…}>: the header checkbox then asks "Rows on this page / All rows in the table".'
+			}
+		]
+	}
+];
+
+/* ---------- Appendix A: table settings ----------
+   Figma → habibi-library → "Appendix A — LTR" → "Table settings" */
+
+export const tableSettingsGuidelines = [
+	{
+		title: 'Table settings',
+		about: 'Rules for showing, hiding, pinning and reordering columns',
+		rules: [
+			{
+				id: '1.1',
+				title: 'Default view',
+				text: ['Table settings open when the user clicks the settings button.'],
+				code: 'The settings button sits at the end of the table toolbar: <Button icon="settings" label="Table settings" />.'
+			},
+			{
+				id: '1.2',
+				title: 'Option A — Drawer',
+				text: [
+					'Recommended for tables with more than 8 columns.',
+					'Up to 3 columns can be pinned.',
+					'At least 2 columns must stay visible: once only 2 are left, their hide segment is disabled.'
+				],
+				code: 'Pinned columns: <MultiSelect big max={3}>. Each column: <DragRow bind:visible hideDisabled={…}>. Changes reach the table on "Save".'
+			},
+			{
+				id: '1.3',
+				title: 'Option B — Popover',
+				text: [
+					'Recommended for tables with fewer than 8 columns where data can be refreshed instantly.',
+					'At least 2 columns must stay visible: once only 2 are left, their hide segment is disabled.'
+				],
+				code: 'Each column: <DragRow bind:visible hideDisabled={…}>. Every change reaches the table at once.'
 			}
 		]
 	}

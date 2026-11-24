@@ -50,5 +50,6 @@ export { default as Skeleton } from './components/skeleton/Skeleton.svelte';
 export { default as Avatar } from './components/avatar/Avatar.svelte';
 export { default as Table } from './components/table/Table.svelte';
 export { default as TableToolbar } from './components/table/TableToolbar.svelte';
+export { default as DragRow } from './components/drag-row/DragRow.svelte';
 export { default as EmptyState } from './components/empty-state/EmptyState.svelte';
 export { default as Splitter } from './components/splitter/Splitter.svelte';

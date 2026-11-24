@@ -24,6 +24,8 @@
 		hint         small help text under the box
 		error        error message under the box. When set, the field turns red
 		icon         icon name at the start of the box (optional)
+		max          the most options that can be chosen (optional). Once reached, the other
+		             options cannot be ticked, and a "2 / 3" counter shows under the box
 		big          true = tall version (Figma "compact = False"). Default false
 		disabled     true = cannot be changed
 
@@ -51,6 +53,7 @@
 		hint = '',
 		error = '',
 		icon = '',
+		max = 0,
 		big = false,
 		disabled = false,
 		class: extraClass = ''
@@ -69,6 +72,12 @@
 	let chosen = $derived(items.filter((item) => value.includes(item.value)));
 
 	let tip = $derived(error || hint);
+	let counter = $derived(max ? `${value.length} / ${max}` : '');
+
+	// With `max` reached, only the chosen options can still be clicked (to untick them).
+	function isLocked(item) {
+		return max > 0 && value.length >= max && !value.includes(item.value);
+	}
 
 	// Tick or untick one option.
 	function toggle(item) {
@@ -139,7 +148,7 @@
 				{#each items as item}
 					<Checkbox
 						checked={value.includes(item.value)}
-						disabled={item.disabled}
+						disabled={item.disabled || isLocked(item)}
 						onchange={() => toggle(item)}>{item.label}</Checkbox
 					>
 				{/each}
@@ -147,7 +156,10 @@
 		</div>
 	{/if}
 
-	{#if tip}
-		<span class="hb-field__tips"><span>{tip}</span></span>
+	{#if tip || counter}
+		<span class="hb-field__tips">
+			<span>{tip}</span>
+			<span>{counter}</span>
+		</span>
 	{/if}
 </div>

@@ -1,13 +1,18 @@
-<!-- DOCS: Table, EmptyState, Splitter. -->
+<!-- DOCS: Table, DragRow, EmptyState, Splitter. -->
 <script>
 	import { resolve } from '$app/paths';
 	import { Table, Tag, EmptyState, Splitter, Button } from '#lib';
 	import Demo from '../Demo.svelte';
+	import ColumnList from '../table-settings/ColumnList.svelte';
+	import { startingColumns } from '../table-settings/columns.js';
 	import { getEmployees, statusColour, sortEmployees } from '../employees.js';
 	import { content } from '../content.js';
 	import { pick } from '../examples.svelte.js';
 
 	const t = pick(content.data); // the example texts, in the current language
+
+	/* ---------- DragRow example: the columns of a table, as in table settings ---------- */
+	let dragColumns = $state(startingColumns());
 
 	/* ---------- Table example: sorting and picking one row ---------- */
 
@@ -88,6 +93,16 @@
 </Demo>
 
 <Demo
+	title="DragRow"
+	figma="drag-row"
+	about="Drag a row by its grip to reorder; show or hide it with the switch. Here at least 2 must stay visible."
+>
+	<div class="drag-rows">
+		<ColumnList bind:columns={dragColumns} />
+	</div>
+</Demo>
+
+<Demo
 	title="EmptyState"
 	figma="Empty"
 	about="What a screen shows when there is nothing to show. Five situations, each with its own monkey."
@@ -130,6 +145,13 @@
 </Demo>
 
 <style>
+	/* As wide as the popover of the table settings guide. */
+	.drag-rows {
+		width: 320px;
+		padding: 12px;
+		border-radius: var(--radius-l);
+		background: var(--uncolorful-grey-background);
+	}
 	.more {
 		color: var(--boring-blue-50);
 	}

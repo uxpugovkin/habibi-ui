@@ -33,11 +33,14 @@
 			group: 'Status',
 			items: ['Tag', 'Badge', 'Marker', 'Notification', 'Tooltip', 'Skeleton', 'Avatar']
 		},
-		{ group: 'Data', items: ['Table', 'EmptyState', 'Splitter'] }
+		{ group: 'Data', items: ['Table', 'DragRow', 'EmptyState', 'Splitter'] }
 	];
 
 	// Side menu, part 2: longer write-ups that have a page of their own.
-	const guides = [{ label: 'Tables', path: '/ds/tables' }];
+	const guides = [
+		{ label: 'Tables', path: '/ds/tables' },
+		{ label: 'Table settings', path: '/ds/table-settings' }
+	];
 
 	const themes = [
 		{ value: 'light', label: 'Light' },

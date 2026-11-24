@@ -411,5 +411,19 @@ export const content = {
 			tatiana: words.tatiana,
 			superAdmin: words.superAdmin
 		}
+	},
+
+	// The table settings guide (drawer, popover) and the DragRow demo
+	tableSettings: {
+		title: { en: 'Table settings', ar: 'إعدادات الجدول' },
+		pinnedColumns: { en: 'Pinned columns', ar: 'الأعمدة المثبتة' },
+		maxPinned: { en: 'Max 3 columns', ar: '3 أعمدة كحد أقصى' },
+		show: { en: 'Show', ar: 'إظهار' },
+		hide: { en: 'Hide', ar: 'إخفاء' },
+		save: { en: 'Save', ar: 'حفظ' },
+		cancel: { en: 'Cancel', ar: 'إلغاء' },
+		revert: { en: 'Revert changes', ar: 'التراجع عن التغييرات' },
+		close: { en: 'Close', ar: 'إغلاق' },
+		download: words.download
 	}
 };

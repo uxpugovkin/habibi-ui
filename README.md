@@ -74,9 +74,10 @@ src/
 Some components come with written rules for how to use them. They live next to the component;
 the docs page shows them with a live example under every rule.
 
-| Topic  | File                                     | Docs page    |
-| ------ | ---------------------------------------- | ------------ |
-| Tables | `src/lib/components/table/guidelines.js` | `/ds/tables` |
+| Topic          | File                                     | Docs page            |
+| -------------- | ---------------------------------------- | -------------------- |
+| Tables         | `src/lib/components/table/guidelines.js` | `/ds/tables`         |
+| Table settings | `src/lib/components/table/guidelines.js` | `/ds/table-settings` |
 
 Read the guidelines before building a screen that uses that component.
 
@@ -145,6 +146,7 @@ npm run package      # builds dist/
 | avatar, badge, marker, tag             | `Avatar`, `Badge`, `Marker`, `Tag`             |
 | notification, tooltip, skeleton        | `Notification`, `Tooltip`, `Skeleton`          |
 | table                                  | `Table`, `TableToolbar`                        |
+| drag-row                               | `DragRow`                                      |
 | splitter                               | `Splitter`                                     |
 | Drop List                              | `Menu`, `MenuItem`                             |
 | Empty                                  | `EmptyState` (with the monkey mascot, 5 types) |

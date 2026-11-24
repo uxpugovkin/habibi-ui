@@ -17,9 +17,21 @@
 		Plain texts work too:
 		<Segmented bind:value={period} options={['Day', 'Week', 'Month']} />
 
+		Icons only (the labels become hints):
+		<Segmented
+			iconOnly
+			bind:value={shown}
+			options={[
+				{ value: 'shown', label: 'Show', icon: 'visibility-on' },
+				{ value: 'hidden', label: 'Hide', icon: 'visibility-off' }
+			]}
+		/>
+
 	Props:
 		value      the chosen value. Use bind:value to read and change it
 		options    the list. Either plain texts, or objects { value, label, icon, disabled }
+		iconOnly   true = each segment shows only its icon; its label becomes the hint under
+		           the mouse and what screen readers say. Default false
 		disabled   true = the whole control cannot be clicked
 
 	The look lives in ../chip/chip.css (shared with Chip and FilterChip).
@@ -28,7 +40,13 @@
 	import Icon from '../icon/Icon.svelte';
 	import '../chip/chip.css';
 
-	let { value = $bindable(), options = [], disabled = false, class: extraClass = '' } = $props();
+	let {
+		value = $bindable(),
+		options = [],
+		iconOnly = false,
+		disabled = false,
+		class: extraClass = ''
+	} = $props();
 
 	// Accept both 'Text' and { value, label }: turn everything into { value, label }.
 	let items = $derived(
@@ -47,10 +65,12 @@
 			role="radio"
 			aria-checked={item.value === value}
 			disabled={disabled || item.disabled}
+			aria-label={iconOnly ? item.label : undefined}
+			title={iconOnly ? item.label : undefined}
 			onclick={() => (value = item.value)}
 		>
 			{#if item.icon}<Icon name={item.icon} size={20} />{/if}
-			<span class="hb-chip__label">{item.label}</span>
+			{#if !iconOnly}<span class="hb-chip__label">{item.label}</span>{/if}
 		</button>
 	{/each}
 </div>

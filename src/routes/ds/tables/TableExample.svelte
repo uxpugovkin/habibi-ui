@@ -32,6 +32,9 @@
 		narrow            true = for the small page inside the app window (AppFrame): the table may
 		                  get narrower there before it starts to scroll sideways
 		pinned            true = the Employee column is pinned
+		layout            the columns as the table settings left them: a list of
+		                  { key, visible, pinned }, in order (see ../table-settings/columns.js).
+		                  Hidden ones are left out; pinned ones move to the start
 		longTexts         true = the "wrap and cut" example: long header, long name, long department
 		selectable        true = checkbox column
 		picked            which rows are ticked at the start: a list of ids, e.g. [2, 3, 5],
@@ -72,6 +75,7 @@
 		wide = false,
 		narrow = false,
 		pinned = false,
+		layout = null,
 		longTexts = false,
 		selectable = false,
 		picked = [],
@@ -97,7 +101,7 @@
 
 	/* ---------- Columns ---------- */
 
-	let columns = $derived(
+	let allColumns = $derived(
 		columnsWith(columnWidths[longTexts ? 'longTexts' : wide ? 'wide' : 'normal'])
 			.filter((column) => !hide.includes(column.key))
 			.map((column) => {
@@ -110,6 +114,24 @@
 				return column;
 			})
 	);
+
+	// With table settings: their order, only the visible ones, pinned ones first
+	// (the Table pins columns from the start, one after another).
+	let columns = $derived(layout ? arrange(allColumns, layout) : allColumns);
+
+	function arrange(list, settings) {
+		const shown = settings
+			.filter((setting) => setting.visible)
+			.map((setting) => {
+				const column = list.find((other) => other.key === setting.key);
+				return column && { ...column, pinned: setting.pinned };
+			})
+			.filter(Boolean); // a column left out with `hide` stays out
+		return [
+			...shown.filter((column) => column.pinned),
+			...shown.filter((column) => !column.pinned)
+		];
+	}
 
 	// The table never gets narrower than this; in a smaller box it scrolls sideways.
 	//   872px = a 904px example box without its padding;  620px = the same inside the app window.
