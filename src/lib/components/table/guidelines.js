@@ -255,12 +255,6 @@ export const tableSettingsGuidelines = [
 		rules: [
 			{
 				id: '1.1',
-				title: 'Default view',
-				text: ['Table settings open when the user clicks the settings button.'],
-				code: 'The settings button sits at the end of the table toolbar: <Button icon="settings" label="Table settings" />.'
-			},
-			{
-				id: '1.2',
 				title: 'Option A — Drawer',
 				text: [
 					'Recommended for tables with more than 8 columns.',
@@ -270,7 +264,7 @@ export const tableSettingsGuidelines = [
 				code: 'Pinned columns: <MultiSelect big max={3}>. Each column: <DragRow bind:visible hideDisabled={…}>. Changes reach the table on "Save".'
 			},
 			{
-				id: '1.3',
+				id: '1.2',
 				title: 'Option B — Popover',
 				text: [
 					'Recommended for tables with fewer than 8 columns where data can be refreshed instantly.',

@@ -13,15 +13,13 @@
 <script>
 	import { tableSettingsGuidelines } from '#lib/components/table/guidelines.js';
 	import Guide from '../Guide.svelte';
-	import TableExample from '../tables/TableExample.svelte';
 	import DrawerExample from './DrawerExample.svelte';
 	import PopoverExample from './PopoverExample.svelte';
 
 	// rule id → the snippet that shows it.
 	const exampleFor = {
-		1.1: defaultView,
-		1.2: drawer,
-		1.3: popover
+		1.1: drawer,
+		1.2: popover
 	};
 </script>
 
@@ -32,11 +30,6 @@
 <Guide chapters={tableSettingsGuidelines} {exampleFor} />
 
 <!-- ════════════════════════ THE EXAMPLES ════════════════════════ -->
-
-<!-- The table as it is before anyone opens its settings; the settings button is the last one. -->
-{#snippet defaultView()}
-	<TableExample wide viewport={528} />
-{/snippet}
 
 {#snippet drawer()}
 	<DrawerExample />
