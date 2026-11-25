@@ -1,6 +1,7 @@
 <!--
 	THE FRAME OF THE DOCS  —  everything under /ds
-	A top bar, a side menu, and the page content next to it.
+	A top bar, a side menu fixed to the left edge, and the page content centred
+	in the space next to it.
 
 	The top bar has two switches for checking the design system:
 	  - Theme            changes the colours of the whole site
@@ -114,19 +115,23 @@
 		width: 140px;
 	}
 
-	/* ---------- Side menu + content ---------- */
+	/* ---------- Side menu (fixed) + content (centred next to it) ---------- */
+	/* The menu stays put at the left edge, under the top bar.
+	   The rest of the window is a flex box that centres the content column;
+	   it starts after the menu (the 200px of room on its left). */
 	.layout {
 		display: flex;
-		align-items: flex-start;
+		justify-content: center;
+		padding-inline-start: 200px;
 	}
 	.side {
-		position: sticky;
+		position: fixed;
 		top: 56px;
-		flex: none;
+		bottom: 0;
+		inset-inline-start: 0;
 		display: flex;
 		flex-direction: column;
 		width: 200px;
-		height: calc(100vh - 56px);
 		padding: 16px 12px;
 		overflow-y: auto;
 	}
@@ -155,10 +160,13 @@
 		padding: 24px 24px 96px;
 	}
 
-	/* On narrow screens the side menu is hidden; the page is still one long scroll. */
+	/* On narrow screens the side menu is hidden and the content takes the whole width. */
 	@media (max-width: 800px) {
 		.side {
 			display: none;
+		}
+		.layout {
+			padding-inline-start: 0;
 		}
 	}
 </style>
