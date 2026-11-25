@@ -22,6 +22,7 @@ export { default as Loader } from './components/loader/Loader.svelte';
 export { default as TextInput } from './components/text-input/TextInput.svelte';
 export { default as Select } from './components/select/Select.svelte';
 export { default as MultiSelect } from './components/multi-select/MultiSelect.svelte';
+export { default as TagInput } from './components/tag-input/TagInput.svelte';
 export { default as Checkbox } from './components/checkbox/Checkbox.svelte';
 export { default as Radio } from './components/radio/Radio.svelte';
 export { default as Switch } from './components/switch/Switch.svelte';

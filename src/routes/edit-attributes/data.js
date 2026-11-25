@@ -12,7 +12,7 @@
 	  text     'Lead security analyst'    the text                    TextInput (with a counter)
 	  date     '14.03.1988'               the text                    TextInput, DD.MM.YYYY
 	  enum     'full-time'                the label of the option     Select
-	  array    ['en', 'es']               labels with dots between    MultiSelect (tags)
+	  array    ['English', 'German']      texts with dots between     TagInput: type, Enter = a tag
 	  multi    ['berlin', 'amsterdam']    small cards: title + line   MultiSelect ("2 chosen")
 
 	An empty value ('' or []) is shown as "—".
@@ -27,7 +27,7 @@ export const user = {
 	lastSync: '12.08.2026'
 };
 
-/* ---------- The options of the enum, array and multi attributes ---------- */
+/* ---------- The options of the enum and multi attributes ---------- */
 
 const departments = [
 	{ value: 'security-ops', label: 'Security Operations' },
@@ -55,22 +55,6 @@ const timeZones = [
 	{ value: 'europe-london', label: 'Europe/London (UTC+0)' },
 	{ value: 'america-new-york', label: 'America/New_York (UTC−5)' },
 	{ value: 'asia-dubai', label: 'Asia/Dubai (UTC+4)' }
-];
-
-const languages = [
-	{ value: 'en', label: 'English' },
-	{ value: 'de', label: 'German' },
-	{ value: 'es', label: 'Spanish' },
-	{ value: 'fr', label: 'French' },
-	{ value: 'ar', label: 'Arabic' }
-];
-
-const skills = [
-	{ value: 'incident-response', label: 'Incident response' },
-	{ value: 'threat-hunting', label: 'Threat hunting' },
-	{ value: 'soc2', label: 'SOC 2' },
-	{ value: 'iso27001', label: 'ISO 27001' },
-	{ value: 'forensics', label: 'Forensics' }
 ];
 
 const offices = [
@@ -118,8 +102,7 @@ export const groups = [
 				id: 'languages',
 				title: 'Languages',
 				type: 'array',
-				value: ['en', 'de', 'es'],
-				options: languages
+				value: ['English', 'German', 'Spanish']
 			},
 			{ id: 'nickname', title: 'Nickname', type: 'text', value: '', maxlength: 30 }
 		]
@@ -183,8 +166,7 @@ export const groups = [
 				id: 'skills',
 				title: 'Skills',
 				type: 'array',
-				value: ['incident-response', 'threat-hunting', 'soc2'],
-				options: skills
+				value: ['Incident response', 'Threat hunting', 'SOC 2']
 			},
 			{ id: 'accessExpires', title: 'Access expires', type: 'date', value: '31.12.2026' }
 		]
@@ -243,7 +225,7 @@ export function isEmpty(value) {
 	return Array.isArray(value) ? value.length === 0 : value.trim() === '';
 }
 
-/** The option of an enum, array or multi attribute that has this value. */
+/** The option of an enum or multi attribute that has this value. */
 export function optionOf(attribute, value) {
 	return attribute.options.find((option) => option.value === value);
 }
@@ -251,7 +233,9 @@ export function optionOf(attribute, value) {
 /** The value as words, e.g. for the search: "English German Spanish". */
 export function textOf(attribute, value) {
 	if (attribute.type === 'enum') return optionOf(attribute, value)?.label ?? '';
-	if (Array.isArray(value)) return value.map((item) => optionOf(attribute, item)?.label).join(' ');
+	if (attribute.type === 'multi')
+		return value.map((item) => optionOf(attribute, item)?.label).join(' ');
+	if (attribute.type === 'array') return value.join(' ');
 	return value;
 }
 

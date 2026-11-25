@@ -225,6 +225,12 @@ export const content = {
 			}
 		],
 		chosen: { en: (count) => `${count} chosen`, ar: (count) => `تم اختيار ${count}` },
+		// TagInput
+		tags: { en: 'Languages', ar: 'اللغات' },
+		tagValues: { en: ['English', 'German'], ar: ['العربية', 'الإنجليزية'] },
+		typeAndEnter: { en: 'Type and press Enter', ar: 'اكتب واضغط Enter' },
+		tagsHint: { en: 'Each language becomes a tag', ar: 'كل لغة تصبح وسمًا' },
+		addAtLeastOne: { en: 'Please add at least one', ar: 'يرجى إضافة واحدة على الأقل' },
 		// Checkbox, Radio, Switch, Slider
 		title: { en: 'Title', ar: 'العنوان' },
 		subtitle: { en: 'Subtitle', ar: 'عنوان فرعي' },

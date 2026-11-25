@@ -5,7 +5,7 @@
 		text    TextInput, with a "12 / 60" counter when the text has a limit
 		date    TextInput with a calendar icon, written as DD.MM.YYYY
 		enum    Select: pick one
-		array   MultiSelect: pick several, shown as tags
+		array   TagInput: type a text, Enter turns it into a tag; × removes a tag
 		multi   MultiSelect: pick several, each with a second line; the box says "3 chosen"
 
 	Figma:  sbertech-habibi → page "abac-r5" → "EDIT-form"
@@ -18,14 +18,15 @@
 		attribute   one attribute from data.js
 		value       the value being edited. Use bind:value: it changes while the person types
 		problem     what is wrong with the value ('' = nothing). Shown red under the field
-		onclose     called with `true` to undo (Esc), with `false` to keep the value (Enter)
+		onclose     called with `true` to undo (Esc), with `false` to keep the value
+		            (Enter in a text box; for arrays Enter adds a tag instead)
 
 	The card only edits; the page decides what a change means ("Not saved", "Error").
 	A click outside the card is handled by the page (it keeps the value, like Enter).
 	It slides in 0.3s, ease out — the timing of every animation in the Figma prototype.
 -->
 <script>
-	import { TextInput, Select, MultiSelect } from '#lib';
+	import { TextInput, Select, MultiSelect, TagInput } from '#lib';
 	import { fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 
@@ -33,15 +34,19 @@
 
 	let card;
 
-	// The field takes the keyboard as soon as the card opens.
+	// The field takes the keyboard as soon as the card opens: the box to type in if there
+	// is one (not the × of a tag before it), otherwise the select or the list button.
 	$effect(() => {
-		card.querySelector('input, select, button')?.focus();
+		(card.querySelector('input') ?? card.querySelector('select, button'))?.focus();
 	});
 
 	function onkeydown(event) {
 		if (event.key === 'Escape') onclose?.(true);
-		// Enter keeps the value. (In the lists Enter ticks an option instead.)
-		if (event.key === 'Enter' && event.target.tagName === 'INPUT') onclose?.(false);
+		// Enter in a text box keeps the value and closes the card. Not for arrays: there
+		// Enter turns the typed text into a tag. (In the lists Enter ticks an option.)
+		if (event.key === 'Enter' && event.target.tagName === 'INPUT' && attribute.type !== 'array') {
+			onclose?.(false);
+		}
 	}
 </script>
 
@@ -82,10 +87,9 @@
 			bind:value
 		/>
 	{:else if attribute.type === 'array'}
-		<MultiSelect
+		<TagInput
 			label={attribute.title}
-			placeholder="Choose…"
-			options={attribute.options}
+			placeholder="Type and press Enter"
 			error={problem}
 			bind:value
 		/>

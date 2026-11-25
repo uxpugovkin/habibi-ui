@@ -1,6 +1,6 @@
-<!-- DOCS: TextInput, Select, MultiSelect, Checkbox, Radio, Switch, Slider. -->
+<!-- DOCS: TextInput, Select, MultiSelect, TagInput, Checkbox, Radio, Switch, Slider. -->
 <script>
-	import { TextInput, Select, MultiSelect, Checkbox, Radio, Switch, Slider } from '#lib';
+	import { TextInput, Select, MultiSelect, TagInput, Checkbox, Radio, Switch, Slider } from '#lib';
 	import Demo from '../Demo.svelte';
 	import { content } from '../content.js';
 	import { pick } from '../examples.svelte.js';
@@ -19,6 +19,7 @@
 	let offices = $state([]);
 	let roles = $state(['admin', 'auditor', 'editor', 'viewer', 'owner']);
 	let projects = $state(['atlas', 'kestrel']);
+	let tags = $state(t.tagValues);
 
 	let agree = $state(true);
 	let updates = $state(false);
@@ -100,6 +101,19 @@
 			summary={t.chosen(projects.length)}
 			bind:value={projects}
 		/>
+	</div>
+</Demo>
+
+<Demo
+	title="TagInput"
+	figma="input → combobox"
+	about="Type several short texts: Enter turns each one into a tag, the × on a tag removes it."
+>
+	<div class="grid">
+		<TagInput label={t.tags} placeholder={t.typeAndEnter} bind:value={tags} />
+		<TagInput label={t.tags} placeholder={t.typeAndEnter} hint={t.tagsHint} />
+		<TagInput label={t.withError} placeholder={t.typeAndEnter} error={t.addAtLeastOne} />
+		<TagInput label={t.disabled} value={t.tagValues} disabled />
 	</div>
 </Demo>
 

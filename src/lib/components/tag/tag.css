@@ -87,3 +87,24 @@
 .hb-tag--xs.hb-tag--disabled {
 	--tag-text: var(--uncolorful-grey-tertiary);
 }
+
+/* ---------- The × that removes the tag (when it has `onremove`) ---------- */
+
+.hb-tag__remove {
+	display: inline-flex;
+	margin-inline-end: -2px; /* the icon has its own air: keep the tag's 6px edge */
+	padding: 0;
+	border: 0;
+	border-radius: var(--radius-s);
+	background: none;
+	color: inherit;
+	cursor: pointer;
+	opacity: 0.7;
+}
+.hb-tag__remove:hover {
+	opacity: 1;
+}
+.hb-tag__remove:disabled {
+	cursor: not-allowed;
+	opacity: 1;
+}

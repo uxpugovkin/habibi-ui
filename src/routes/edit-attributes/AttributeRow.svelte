@@ -15,17 +15,18 @@
 		value       the value to show (the changed one, if it was changed)
 		status      "default" | "not-saved" | "error"
 		open        true = its edit card is open (the row keeps its hover colour)
-		onedit      called when a value is clicked
+		onedit      called when the value is clicked
 		card        snippet: the edit card, drawn under the row while `open`
 
 	How the value is drawn depends on the datatype (see data.js):
 		text, date   the text
 		enum         the label of the chosen option
-		array        the labels, with dots between them
+		array        the texts, with dots between them
 		multi        small cards: the label and a second line
 		empty        "—"
-	Every piece of the value is a button: on hover a pencil slides in next to it,
-	a click opens the edit card. Hovers fade in 0.3s, like the Figma prototype.
+	The whole value is ONE button with ONE pencil at its end (also for arrays and multi):
+	on hover of the row the pencil slides in, a click opens the edit card.
+	Hovers fade in 0.3s, like the Figma prototype.
 -->
 <script>
 	import { Icon, Tag } from '#lib';
@@ -39,54 +40,47 @@
 	}
 </script>
 
-<!-- One clickable piece of the value. `title` + `subtitle` = a small card (multi);
-     `empty` = the grey "—" of an empty value. -->
-{#snippet piece(title, subtitle = '', empty = false)}
-	<button
-		type="button"
-		class="piece"
-		class:piece--card={subtitle}
-		class:piece--empty={empty}
-		aria-label="Edit {attribute.title}: {title}"
-		onclick={edit}
-	>
-		<span class="piece__text">
-			<span class="hb-text-body-c">{title}</span>
-			{#if subtitle}<span class="hb-text-body-d piece__subtitle">{subtitle}</span>{/if}
-		</span>
-		<span class="piece__pencil"><Icon name="edit" size={16} /></span>
-	</button>
-{/snippet}
-
 <div class="row row--{status}" class:row--open={open} role="group" aria-label={attribute.title}>
 	<span class="row__title hb-text-body-c">{attribute.title}</span>
 
-	<!-- Small cards (multi) sit 4px apart; texts with dots between them, 12px. -->
-	<span class="row__value" class:row__value--cards={attribute.type === 'multi'}>
-		{#if isEmpty(value)}
-			{@render piece('—', '', true)}
-		{:else if attribute.type === 'enum'}
-			{@render piece(optionOf(attribute, value)?.label ?? value)}
-		{:else if attribute.type === 'array'}
-			{#each value as item, index}
-				{#if index > 0}<span class="row__dot" aria-hidden="true">•</span>{/if}
-				{@render piece(optionOf(attribute, item)?.label ?? item)}
-			{/each}
-		{:else if attribute.type === 'multi'}
-			{#each value as item}
-				{@const option = optionOf(attribute, item)}
-				{@render piece(option?.label ?? item, option?.subtitle ?? '')}
-			{/each}
-		{:else}
-			{@render piece(value)}
+	<button type="button" class="value" aria-label="Edit {attribute.title}" onclick={edit}>
+		<!-- Small cards (multi) sit 4px apart; texts with dots between them, 12px. -->
+		<span
+			class="value__pieces hb-text-body-c"
+			class:value__pieces--cards={attribute.type === 'multi'}
+		>
+			{#if isEmpty(value)}
+				<span class="value__empty">—</span>
+			{:else if attribute.type === 'enum'}
+				{optionOf(attribute, value)?.label ?? value}
+			{:else if attribute.type === 'array'}
+				{#each value as text, index}
+					{#if index > 0}<span class="value__dot" aria-hidden="true">•</span>{/if}
+					<span>{text}</span>
+				{/each}
+			{:else if attribute.type === 'multi'}
+				{#each value as item}
+					{@const option = optionOf(attribute, item)}
+					<span class="value__card">
+						<span>{option?.label ?? item}</span>
+						<span class="hb-text-body-d value__subtitle">{option?.subtitle}</span>
+					</span>
+				{/each}
+			{:else}
+				{value}
+			{/if}
+		</span>
+		<span class="value__pencil"><Icon name="edit" size={16} /></span>
+	</button>
+
+	<!-- The tag sits at the far end of the row. -->
+	<span class="row__end">
+		{#if status === 'not-saved'}
+			<Tag colour="warning">Not saved</Tag>
+		{:else if status === 'error'}
+			<Tag colour="error">Error</Tag>
 		{/if}
 	</span>
-
-	{#if status === 'not-saved'}
-		<Tag colour="warning">Not saved</Tag>
-	{:else if status === 'error'}
-		<Tag colour="error">Error</Tag>
-	{/if}
 
 	{#if open}{@render card?.()}{/if}
 </div>
@@ -110,19 +104,8 @@
 		color: var(--uncolorful-grey-tertiary);
 		transition: color 0.3s ease-out;
 	}
-	.row__value {
-		flex: 1;
-		min-width: 0;
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 4px 12px;
-	}
-	.row__value--cards {
-		gap: 4px;
-	}
-	.row__dot {
-		color: var(--uncolorful-grey-tertiary);
+	.row__end {
+		margin-inline-start: auto;
 	}
 
 	/* ---------- Hover (and while its edit card is open) ---------- */
@@ -157,38 +140,47 @@
 		color: var(--shitpile-orange-50);
 	}
 
-	/* ---------- One piece of the value ---------- */
-	.piece {
+	/* ---------- The value: one button ---------- */
+	.value {
 		display: inline-flex;
 		align-items: center;
+		min-width: 0;
 		padding: 0;
 		border: 0;
-		border-radius: var(--radius-s);
 		background: none;
 		color: var(--uncolorful-grey-primary);
 		font: inherit;
 		text-align: start;
 		cursor: pointer;
 	}
-	.piece__text {
+	.value__pieces {
 		display: flex;
-		flex-direction: column;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 4px 12px;
 	}
-	.piece__subtitle {
-		color: var(--uncolorful-grey-secondary);
+	.value__pieces--cards {
+		gap: 4px;
 	}
-	/* "multi": a small grey card. */
-	.piece--card {
-		padding: 4px 8px;
-		background: var(--uncolorful-grey-background);
-	}
-	.piece--empty {
+	.value__dot,
+	.value__empty {
 		color: var(--uncolorful-grey-tertiary);
 	}
+	/* "multi": a small grey card. */
+	.value__card {
+		display: flex;
+		flex-direction: column;
+		padding: 4px 8px;
+		border-radius: var(--radius-s);
+		background: var(--uncolorful-grey-background);
+	}
+	.value__subtitle {
+		color: var(--uncolorful-grey-secondary);
+	}
 
-	/* The pencil is there but has no room until the piece is hovered or focused;
+	/* The pencil is there but has no room until the row is hovered (or the value focused);
 	   then it slides in ("Smart animate, ease out, 0.3s" in Figma). */
-	.piece__pencil {
+	.value__pencil {
 		display: inline-flex;
 		width: 0;
 		margin-inline-start: 0;
@@ -200,14 +192,11 @@
 			margin 0.3s ease-out,
 			opacity 0.3s ease-out;
 	}
-	.piece:hover .piece__pencil,
-	.piece:focus-visible .piece__pencil {
+	.row:hover .value__pencil,
+	.row--open .value__pencil,
+	.value:focus-visible .value__pencil {
 		width: 16px;
-		margin-inline-start: 4px;
-		opacity: 1;
-	}
-	.piece--card:hover .piece__pencil,
-	.piece--card:focus-visible .piece__pencil {
 		margin-inline-start: 6px;
+		opacity: 1;
 	}
 </style>

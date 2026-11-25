@@ -1,0 +1,25 @@
+/* ==========================================================================
+   TAG INPUT — see TagInput.svelte for how to use it.
+   Figma: habibi-library → page "input" → "combobox"
+
+   The box itself (label, colours, hover / focus / error / disabled) is the
+   shared FIELD from ../field/field.css. This file only lets the box hold
+   tags and grow with them.
+   ========================================================================== */
+
+/* A field is 28px tall. Here that is only the smallest height:
+   4px + one row of 20px tags + 4px. More tags make the box taller. */
+.hb-tag-input .hb-field__body {
+	flex-wrap: wrap;
+	gap: 4px;
+	height: auto;
+	min-height: 28px;
+	padding-block: 4px;
+	cursor: text;
+}
+
+/* The typing spot takes the rest of the line, and a new line when little is left. */
+.hb-tag-input .hb-field__input {
+	flex: 1 0 64px;
+	height: 20px;
+}
