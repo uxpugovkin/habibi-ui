@@ -26,15 +26,15 @@
 	The filters follow the columns, one tag per column. As in the table guide (/ds/tables):
 	at most four tags in the toolbar; a table with more columns gets the "all filters"
 	button in front, with a list where tags can be switched on and off.
-	A delete button shows on the row under the mouse: in a column of its own, or (in a
-	wide table, which scrolls sideways) floating over the end of the row — guide 5.
+	A delete button shows on the row under the mouse, in a column of its own (40px) pinned
+	to the far side: in a wide table the other columns slide under it while it scrolls.
 	What the page keeps: the values and the changes (as for the attribute rows), so Save
 	and Discard work for cells and attributes together.
 
 	A changed row turns orange, a row with a wrong value red. The library Table knows
 	nothing about that (it stays simple): every cell carries a mark, and the CSS below
-	colours the rows that hold one. No line at the start of the row (the attribute rows
-	have one; the table rows are told apart by their colour only).
+	colours the rows that hold one, with a 2px line at its start — like the attribute rows.
+	The delete column takes the colour of its row too.
 	A wide table scrolls sideways; its first column stays (pinned).
 -->
 <script>
@@ -204,8 +204,8 @@
 <section class="table-card" bind:this={section} onscrollcapture={() => onclose?.()}>
 	<h2 class="table-card__title hb-text-body-a">{table.title}</h2>
 
-	<!-- Delete: a column of its own (40px), or floating over the end of a wide table. -->
-	<Table {columns} {rows} {minWidth} actions={deleteButton} actionsWidth={table.wide ? 0 : 40}>
+	<!-- Delete: a column of its own (40px), pinned to the far side. -->
+	<Table {columns} {rows} {minWidth} actions={deleteButton} actionsWidth={40}>
 		{#snippet toolbar()}
 			<TableToolbar>
 				<!-- "All filters" (only when there are more columns than tags): switch tags on and off. -->
@@ -355,18 +355,30 @@
 	}
 
 	/* ---------- Rows that need attention (Figma "3-0-unsaved-changes") ----------
-	   A row that holds a marked cell is tinted; a step stronger under the mouse.
+	   A row that holds a marked cell is tinted, a step stronger under the mouse, with a
+	   2px line at its start. Every cell takes the colour, the pinned ones and the delete
+	   column too. Square ends: the line would look odd on a rounded corner.
 	   (:global — the rows and cells are drawn by the library Table.) */
 	.table-card :global(tbody tr:has([data-row='warning']) td) {
 		background: var(--shitpile-orange-90);
+		border-radius: 0;
 	}
 	.table-card :global(tbody tr:has([data-row='warning']):hover td) {
 		background: var(--shitpile-orange-80);
 	}
 	.table-card :global(tbody tr:has([data-row='error']) td) {
 		background: var(--traffic-light-red-90);
+		border-radius: 0;
 	}
 	.table-card :global(tbody tr:has([data-row='error']):hover td) {
 		background: var(--traffic-light-red-80);
+	}
+	.table-card :global(tbody tr:has([data-row='warning']) td:first-child) {
+		border-inline-start: 2px solid var(--shitpile-orange-50);
+		padding-inline-start: 10px; /* 12 − the 2px line: the text does not move */
+	}
+	.table-card :global(tbody tr:has([data-row='error']) td:first-child) {
+		border-inline-start: 2px solid var(--traffic-light-red-50);
+		padding-inline-start: 10px;
 	}
 </style>
