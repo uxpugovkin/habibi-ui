@@ -194,14 +194,205 @@ export const groups = [
 	}
 ];
 
+/* ---------- Tables: lists of records, every cell editable ----------
+	Figma:  sbertech-habibi → page "abac-r5" → "1-0-abtract" → "Example" (the table under the groups)
+
+	One table:  { id, title, columns, rows, filters, wide }
+	  columns   like attributes: { id, title, type, options?, required?, maxlength? },
+	            plus how the table shows them: width (px), pinned
+	  rows      { id, <column id>: value, … }
+	  filters   ids of the columns that get a filter chip in the table's toolbar
+	  wide      true = wider than the page: it scrolls sideways, the first column stays
+
+	A cell is edited like an attribute. Its key in the values is "table/row/column",
+	e.g. "assignments/2/skills" (see cellOf).
+*/
+
+const assignmentStatuses = [
+	{ value: 'active', label: 'Active' },
+	{ value: 'planned', label: 'Planned' },
+	{ value: 'ended', label: 'Ended' }
+];
+
+const grantRoles = [
+	{ value: 'viewer', label: 'Viewer' },
+	{ value: 'analyst', label: 'Analyst' },
+	{ value: 'approver', label: 'Approver' },
+	{ value: 'owner', label: 'Owner' }
+];
+
+export const tables = [
+	{
+		id: 'assignments',
+		title: 'Assignments',
+		filters: ['status', 'skills', 'department', 'offices'],
+		columns: [
+			{
+				id: 'position',
+				title: 'Position',
+				type: 'text',
+				width: 200,
+				required: true,
+				maxlength: 60
+			},
+			{ id: 'offices', title: 'Offices', type: 'multi', options: offices },
+			{ id: 'skills', title: 'Skills', type: 'array' },
+			{ id: 'department', title: 'Department', type: 'enum', options: departments, width: 180 },
+			{ id: 'status', title: 'Status', type: 'enum', options: assignmentStatuses, width: 120 }
+		],
+		rows: [
+			{
+				id: 1,
+				position: 'Lead security analyst',
+				offices: ['berlin', 'amsterdam'],
+				skills: ['Incident response', 'Threat hunting'],
+				department: 'security-ops',
+				status: 'active'
+			},
+			{
+				id: 2,
+				position: 'SOC mentor',
+				offices: ['berlin'],
+				skills: ['Training', 'Playbooks'],
+				department: 'security-ops',
+				status: 'active'
+			},
+			{
+				id: 3,
+				position: 'Audit liaison',
+				offices: ['amsterdam', 'lisbon'],
+				skills: ['SOC 2', 'ISO 27001'],
+				department: 'risk',
+				status: 'planned'
+			},
+			{
+				id: 4,
+				position: 'Access reviewer',
+				offices: ['dubai'],
+				skills: ['Access reviews'],
+				department: 'identity',
+				status: 'ended'
+			}
+		]
+	},
+	{
+		id: 'grants',
+		title: 'Access grants',
+		wide: true,
+		filters: ['role', 'clearance', 'environments'],
+		columns: [
+			{
+				id: 'resource',
+				title: 'Resource',
+				type: 'text',
+				width: 180,
+				pinned: true,
+				required: true,
+				maxlength: 40
+			},
+			{ id: 'projects', title: 'Projects', type: 'multi', options: projects, width: 340 },
+			{ id: 'scopes', title: 'Scopes', type: 'array', width: 240 },
+			{ id: 'role', title: 'Role', type: 'enum', options: grantRoles, width: 140, required: true },
+			{ id: 'clearance', title: 'Clearance', type: 'enum', options: clearances, width: 140 },
+			{ id: 'granted', title: 'Granted', type: 'date', width: 120, required: true },
+			{ id: 'expires', title: 'Expires', type: 'date', width: 120 },
+			{ id: 'approvedBy', title: 'Approved by', type: 'text', width: 160, maxlength: 40 },
+			{ id: 'ticket', title: 'Ticket', type: 'text', width: 120, maxlength: 12 },
+			{ id: 'environments', title: 'Environments', type: 'array', width: 240 }
+		],
+		rows: [
+			{
+				id: 1,
+				resource: 'SIEM console',
+				projects: ['kestrel'],
+				scopes: ['read', 'write'],
+				role: 'analyst',
+				clearance: 'confidential',
+				granted: '02.09.2019',
+				expires: '31.12.2026',
+				approvedBy: 'Walter Hughes',
+				ticket: 'SEC-1042',
+				environments: ['Production', 'Staging']
+			},
+			{
+				id: 2,
+				resource: 'Identity vault',
+				projects: ['atlas', 'harbor'],
+				scopes: ['read'],
+				role: 'viewer',
+				clearance: 'secret',
+				granted: '15.01.2023',
+				expires: '30.06.2026',
+				approvedBy: 'Tatiana Pirog',
+				ticket: 'SEC-2210',
+				environments: ['Production']
+			},
+			{
+				id: 3,
+				resource: 'Audit warehouse',
+				projects: ['lumen'],
+				scopes: ['read', 'export'],
+				role: 'approver',
+				clearance: 'internal',
+				granted: '01.03.2024',
+				expires: '',
+				approvedBy: 'Marcus Lee',
+				ticket: 'AUD-0381',
+				environments: ['Production', 'Analytics']
+			},
+			{
+				id: 4,
+				resource: 'Policy editor',
+				projects: ['quill'],
+				scopes: ['read', 'write', 'publish'],
+				role: 'owner',
+				clearance: 'confidential',
+				granted: '20.05.2025',
+				expires: '20.05.2026',
+				approvedBy: 'Tatiana Pirog',
+				ticket: 'POL-0077',
+				environments: ['Staging']
+			},
+			{
+				id: 5,
+				resource: 'Secrets rotation',
+				projects: ['harbor'],
+				scopes: ['rotate'],
+				role: 'analyst',
+				clearance: 'secret',
+				granted: '11.11.2025',
+				expires: '11.05.2026',
+				approvedBy: 'Walter Hughes',
+				ticket: 'SEC-3307',
+				environments: ['Production']
+			}
+		]
+	}
+];
+
+/**
+ * One cell of a table, ready to be edited like an attribute: its column, with the
+ * key of the cell as `id` ("assignments/2/skills").
+ */
+export function cellOf(table, row, column) {
+	return { ...column, id: `${table.id}/${row.id}/${column.id}` };
+}
+
 /* ---------- Working with values ---------- */
 
-/** The saved values of all attributes: { id: value }. A fresh copy every time. */
+/** The saved values of all attributes and table cells: { id: value }. A fresh copy every time. */
 export function startingValues() {
 	const values = {};
 	for (const group of groups) {
 		for (const attribute of group.attributes) {
 			values[attribute.id] = copyOf(attribute.value);
+		}
+	}
+	for (const table of tables) {
+		for (const row of table.rows) {
+			for (const column of table.columns) {
+				values[cellOf(table, row, column).id] = copyOf(row[column.id]);
+			}
 		}
 	}
 	return values;
@@ -287,14 +478,25 @@ export const roles = [
 
 /* ---------- JSON (the "JSON" switch) ---------- */
 
-/** The attributes as JSON: { personal: { fullName: …, … }, … }. Shows the values as they are now. */
+/**
+ * The attributes as JSON, as they are now (changes included):
+ *   { personal: { fullName: …, … }, …, assignments: [ { position: …, … }, … ], … }
+ */
 export function jsonOf(values) {
-	return Object.fromEntries(
-		groups.map((group) => [
-			group.title.toLowerCase(),
-			Object.fromEntries(group.attributes.map((attribute) => [attribute.id, values[attribute.id]]))
-		])
-	);
+	const json = {};
+	for (const group of groups) {
+		json[group.title.toLowerCase()] = Object.fromEntries(
+			group.attributes.map((attribute) => [attribute.id, values[attribute.id]])
+		);
+	}
+	for (const table of tables) {
+		json[table.id] = table.rows.map((row) =>
+			Object.fromEntries(
+				table.columns.map((column) => [column.id, values[cellOf(table, row, column).id]])
+			)
+		);
+	}
+	return json;
 }
 
 /**

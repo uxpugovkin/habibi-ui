@@ -17,6 +17,10 @@
 		                        Changing a value back to what is saved makes the row plain again
 		4. Save               → saves every change (or fails: see the state panel) · Discard → drops them
 
+	Under the groups: tables (EditableTable), where every cell is edited the same way.
+	A changed table row turns orange; Save and Discard cover cells and attributes together.
+	The Group filter also lists the tables.
+
 	It started as a copy of the user page of /abac-to-be. What it keeps: the header, the tabs,
 	the JSON switch. What is new: the toolbar of Figma (search, Group, Status) and editing.
 
@@ -41,6 +45,8 @@
 	import {
 		user,
 		groups,
+		tables,
+		cellOf,
 		roles,
 		startingValues,
 		copyOf,
@@ -54,6 +60,7 @@
 	import Breadcrumbs from './Breadcrumbs.svelte';
 	import AttributeRow from './AttributeRow.svelte';
 	import EditCard from './EditCard.svelte';
+	import EditableTable from './EditableTable.svelte';
 	import JsonCode from './JsonCode.svelte';
 
 	/* ---------- Values: what is saved, and what was changed but not saved yet ---------- */
@@ -71,9 +78,14 @@
 	}
 
 	let changedCount = $derived(Object.keys(changes).length);
-	let errorCount = $derived(
-		groups.flatMap((group) => group.attributes).filter((item) => statusOf(item) === 'error').length
-	);
+	// Everything that can be edited: the attributes of the groups and every table cell.
+	const editables = [
+		...groups.flatMap((group) => group.attributes),
+		...tables.flatMap((table) =>
+			table.rows.flatMap((row) => table.columns.map((column) => cellOf(table, row, column)))
+		)
+	];
+	let errorCount = $derived(editables.filter((item) => statusOf(item) === 'error').length);
 
 	// A new value for one attribute. Back to what is saved = no change any more.
 	function change(attribute, value) {
@@ -86,7 +98,7 @@
 
 	/* ---------- The edit card: one at a time ---------- */
 
-	let editing = $state(''); // the id of the attribute whose card is open; '' = none
+	let editing = $state(''); // the id of the attribute (or cell) whose card is open; '' = none
 	let before; // its value when the card opened, for Esc
 
 	function openCard(attribute) {
@@ -153,7 +165,7 @@
 	/* ---------- Search and filters (the toolbar) ---------- */
 
 	let query = $state('');
-	let groupFilter = $state(''); // a group title, or '' = all groups
+	let groupFilter = $state(''); // a group (or table) title, or '' = all
 	let statusFilter = $state(''); // a status below, or '' = all
 
 	const statusOptions = [
@@ -192,6 +204,8 @@
 			.map((group) => ({ ...group, attributes: group.attributes.filter(fits) }))
 			.filter((group) => group.attributes.length)
 	);
+	// The tables have a search and filters of their own; only the Group filter hides them.
+	let shownTables = $derived(tables.filter((table) => !groupFilter || table.title === groupFilter));
 
 	function clearFilters() {
 		query = '';
@@ -266,7 +280,7 @@
 				{#if openMenu === 'group'}
 					<div class="anchor__menu">
 						<Menu label="Group">
-							{#each groups as group}
+							{#each [...groups, ...tables] as group}
 								<MenuItem
 									checked={groupFilter === group.title}
 									onclick={() => (groupFilter = group.title)}>{group.title}</MenuItem
@@ -329,7 +343,7 @@
 			</div>
 		{:else if json}
 			<JsonCode value={jsonOf(values)} {query} />
-		{:else if shownGroups.length === 0}
+		{:else if shownGroups.length === 0 && shownTables.length === 0}
 			<div class="fill">
 				<EmptyState
 					type="not-found"
@@ -362,6 +376,26 @@
 						</AttributeRow>
 					{/each}
 				</section>
+			{/each}
+
+			{#each shownTables as table (table.id)}
+				<EditableTable
+					{table}
+					{values}
+					{statusOf}
+					{editing}
+					onedit={openCard}
+					onclose={() => (editing = '')}
+				>
+					{#snippet card(cell)}
+						<EditCard
+							attribute={cell}
+							bind:value={() => values[cell.id], (value) => change(cell, value)}
+							problem={problemOf(cell, values[cell.id])}
+							onclose={(undo) => closeCard(undo, cell)}
+						/>
+					{/snippet}
+				</EditableTable>
 			{/each}
 		{/if}
 	{:else if tab === 'roles'}

@@ -107,12 +107,8 @@
 
 <style>
 	/* Figma "for-…": 272px, white, a 1px line and 12px inside. No cast shadow.
-	   It hangs under the row, starting where the value starts (8 + 200 + 8). */
+	   Where it hangs is up to what opens it (the attribute row, the table). */
 	.card {
-		position: absolute;
-		top: calc(100% + 4px);
-		inset-inline-start: 216px;
-		z-index: 30;
 		width: 272px;
 		padding: 12px;
 		border: 1px solid var(--uncolorful-grey-border);
