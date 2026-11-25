@@ -19,10 +19,11 @@
 
 	Under the groups: tables (EditableTable), where every cell is edited the same way.
 	A changed table row turns orange; Save and Discard cover cells and attributes together.
-	The Group filter also lists the tables.
+	The Group filter also lists the tables. A table row can be deleted (button on hover):
+	it disappears at once, but only for real after Save — Discard brings it back.
 
 	It started as a copy of the user page of /abac-to-be. What it keeps: the header, the tabs,
-	the JSON switch. What is new: the toolbar of Figma (search, Group, Status) and editing.
+	the JSON switch. What is new: the toolbar of Figma (search, Group, Status, Value) and editing.
 
 	The page reads `proto.data` (loading · error) and `proto.save` (what Save answers).
 -->
@@ -67,6 +68,8 @@
 
 	let saved = $state(startingValues()); // { attribute id: value } — what the "server" has
 	let changes = $state({}); // { attribute id: new value } — only the changed attributes
+	let deleted = $state([]); // table rows deleted and saved: "table/row" keys
+	let deleting = $state([]); // table rows deleted, not saved yet
 	let saving = $state(false);
 
 	// What the page shows: the saved values with the changes on top.
@@ -77,7 +80,7 @@
 		return problemOf(attribute, changes[attribute.id]) ? 'error' : 'not-saved';
 	}
 
-	let changedCount = $derived(Object.keys(changes).length);
+	let changedCount = $derived(Object.keys(changes).length + deleting.length);
 	// Everything that can be edited: the attributes of the groups and every table cell.
 	const editables = [
 		...groups.flatMap((group) => group.attributes),
@@ -94,6 +97,17 @@
 		} else {
 			changes[attribute.id] = value;
 		}
+	}
+
+	// Deleting a table row: it leaves the table now, for real on Save. Changes made in
+	// its cells go with it (they must not stop Save with an error nobody can see).
+	function deleteRow(table, row) {
+		const key = `${table.id}/${row.id}`;
+		for (const id of Object.keys(changes)) {
+			if (id.startsWith(`${key}/`)) delete changes[id];
+		}
+		deleting = [...deleting, key];
+		notify('Row deleted. Save to apply, Discard to bring it back');
 	}
 
 	/* ---------- The edit card: one at a time ---------- */
@@ -135,6 +149,8 @@
 			const count = changedCount;
 			saved = { ...saved, ...changes };
 			changes = {};
+			deleted = [...deleted, ...deleting];
+			deleting = [];
 			notify(count === 1 ? 'Change saved' : `${count} changes saved`, 'success');
 		}, 800);
 	}
@@ -142,6 +158,7 @@
 	function discard() {
 		editing = '';
 		changes = {};
+		deleting = [];
 		notify('Changes discarded');
 	}
 
@@ -166,16 +183,19 @@
 
 	let query = $state('');
 	let groupFilter = $state(''); // a group (or table) title, or '' = all
-	let statusFilter = $state(''); // a status below, or '' = all
+	let statusFilter = $state(''); // "error" | "not-saved" | '' = all
+	let valueFilter = $state(''); // "filled" | "empty" | '' = all
 
 	const statusOptions = [
+		{ value: 'error', label: 'Error' },
+		{ value: 'not-saved', label: 'Not saved' }
+	];
+	const valueOptions = [
 		{ value: 'filled', label: 'Filled' },
-		{ value: 'empty', label: 'Empty' },
-		{ value: 'not-saved', label: 'Not saved' },
-		{ value: 'error', label: 'Error' }
+		{ value: 'empty', label: 'Empty' }
 	];
 
-	let openMenu = $state(''); // which filter list is open: 'group', 'status' or ''
+	let openMenu = $state(''); // which filter list is open: 'group', 'status', 'value' or ''
 
 	function toggleMenu(event, id) {
 		event.stopPropagation(); // the window handler below must not close what was just opened
@@ -191,9 +211,9 @@
 		if (words && !`${attribute.title} ${textOf(attribute, value)}`.toLowerCase().includes(words)) {
 			return false;
 		}
-		if (statusFilter === 'filled') return !isEmpty(value);
-		if (statusFilter === 'empty') return isEmpty(value);
-		if (statusFilter) return status === statusFilter;
+		if (statusFilter && status !== statusFilter) return false;
+		if (valueFilter === 'filled' && isEmpty(value)) return false;
+		if (valueFilter === 'empty' && !isEmpty(value)) return false;
 		return true;
 	}
 
@@ -211,6 +231,7 @@
 		query = '';
 		groupFilter = '';
 		statusFilter = '';
+		valueFilter = '';
 	}
 
 	let crumbs = [
@@ -312,6 +333,27 @@
 				{/if}
 			</span>
 
+			<span class="anchor">
+				<FilterChip
+					name="Value"
+					value={valueOptions.find((option) => option.value === valueFilter)?.label ?? ''}
+					onclick={(event) => toggleMenu(event, 'value')}
+					onclear={() => (valueFilter = '')}
+				/>
+				{#if openMenu === 'value'}
+					<div class="anchor__menu">
+						<Menu label="Value">
+							{#each valueOptions as option}
+								<MenuItem
+									checked={valueFilter === option.value}
+									onclick={() => (valueFilter = option.value)}>{option.label}</MenuItem
+								>
+							{/each}
+						</Menu>
+					</div>
+				{/if}
+			</span>
+
 			<!-- On: the attributes are shown as code instead of cards (with the changes in it). -->
 			<span class="bar__json"><Switch bind:checked={json}>JSON</Switch></span>
 		</div>
@@ -342,7 +384,7 @@
 				</EmptyState>
 			</div>
 		{:else if json}
-			<JsonCode value={jsonOf(values)} {query} />
+			<JsonCode value={jsonOf(values, [...deleted, ...deleting])} {query} />
 		{:else if shownGroups.length === 0 && shownTables.length === 0}
 			<div class="fill">
 				<EmptyState
@@ -384,7 +426,9 @@
 					{values}
 					{statusOf}
 					{editing}
+					hidden={[...deleted, ...deleting]}
 					onedit={openCard}
+					ondelete={(row) => deleteRow(table, row)}
 					onclose={() => (editing = '')}
 				>
 					{#snippet card(cell)}

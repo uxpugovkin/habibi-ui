@@ -7,31 +7,40 @@
 	        (and the changed row of "3-0-unsaved-changes": orange, a line at its start)
 
 	Use:
-		<EditableTable {table} {values} {statusOf} {editing} onedit={…} onclose={…}>
+		<EditableTable {table} {values} {statusOf} {editing} {hidden} onedit={…} ondelete={…} onclose={…}>
 			{#snippet card(cell)}<EditCard attribute={cell} … />{/snippet}
 		</EditableTable>
 
 	Props:
-		table      one table from data.js: { title, columns, rows, filters, wide }
+		table      one table from data.js: { title, columns, rows, wide }
 		values     every value of the page: { "table/row/column": value } (see cellOf)
 		statusOf   tells the status of a cell: "default" | "not-saved" | "error"
 		editing    the key of the cell whose card is open ('' = none)
+		hidden     keys of rows that are deleted ("table/row"): left out
 		onedit     called with a cell when its value is clicked
+		ondelete   called with a row when its delete button is clicked
 		onclose    called when the card should close (the table was scrolled)
 		card       snippet: the edit card of a cell. Gets (cell)
 
 	What the table keeps itself: its search and its filters.
+	The filters follow the columns, one tag per column. As in the table guide (/ds/tables):
+	at most four tags in the toolbar; a table with more columns gets the "all filters"
+	button in front, with a list where tags can be switched on and off.
+	A delete button shows on the row under the mouse: in a column of its own, or (in a
+	wide table, which scrolls sideways) floating over the end of the row — guide 5.
 	What the page keeps: the values and the changes (as for the attribute rows), so Save
 	and Discard work for cells and attributes together.
 
 	A changed row turns orange, a row with a wrong value red. The library Table knows
 	nothing about that (it stays simple): every cell carries a mark, and the CSS below
-	colours the rows that hold one.
+	colours the rows that hold one. No line at the start of the row (the attribute rows
+	have one; the table rows are told apart by their colour only).
 	A wide table scrolls sideways; its first column stays (pinned).
 -->
 <script>
 	import {
 		Button,
+		Checkbox,
 		EmptyState,
 		FilterChip,
 		Menu,
@@ -44,9 +53,20 @@
 	import { notBuilt } from './prototype.svelte.js';
 	import Value from './Value.svelte';
 
-	let { table, values, statusOf, editing = '', onedit, onclose, card } = $props();
+	let {
+		table,
+		values,
+		statusOf,
+		editing = '',
+		hidden = [],
+		onedit,
+		ondelete,
+		onclose,
+		card
+	} = $props();
 
 	const CARD_WIDTH = 272; // see EditCard
+	const MAX_TAGS = 4; // filter tags in the toolbar at most (table guide)
 
 	/* ---------- Columns, as the library Table wants them ---------- */
 
@@ -84,13 +104,32 @@
 
 	let query = $state('');
 	let chosen = $state({}); // { column id: the chosen value }
-	let openMenu = $state(''); // the column id whose filter list is open
+	let openMenu = $state(''); // the column id whose filter list is open, or 'all'
 
-	// The choices of a filter: the options of the column, or (for arrays, which are
-	// typed freely) every text that is in that column now.
+	// Which filter tags are in the toolbar: one per column, the first four to start with.
+	// (Only the starting value comes from the props, on purpose — hence the ignore.)
+	// svelte-ignore state_referenced_locally
+	let tags = $state(table.columns.slice(0, MAX_TAGS).map((column) => column.id));
+	let manyColumns = $derived(table.columns.length > MAX_TAGS);
+
+	// Tick or untick a column in the "all filters" list: its tag appears in, or leaves, the toolbar.
+	function toggleTag(id) {
+		if (tags.includes(id)) {
+			tags = tags.filter((other) => other !== id);
+			unchoose(id); // a filter that is not shown must not keep filtering
+		} else {
+			// keep the order of the columns
+			tags = table.columns
+				.map((column) => column.id)
+				.filter((other) => tags.includes(other) || other === id);
+		}
+	}
+
+	// The choices of a filter: the options of the column, or (texts, dates, arrays — typed
+	// freely) every value that is in that column now.
 	function choicesOf(column) {
 		if (column.options) return column.options;
-		const texts = table.rows.flatMap((row) => valueOf(row, column));
+		const texts = table.rows.flatMap((row) => valueOf(row, column)).filter((text) => text !== '');
 		return [...new Set(texts)].map((text) => ({ value: text, label: text }));
 	}
 
@@ -112,7 +151,9 @@
 		});
 	}
 
-	let rows = $derived(table.rows.filter(fits));
+	let rows = $derived(
+		table.rows.filter((row) => !hidden.includes(`${table.id}/${row.id}`)).filter(fits)
+	);
 
 	function toggleMenu(event, id) {
 		event.stopPropagation(); // the window handler below must not close what was just opened
@@ -163,12 +204,36 @@
 <section class="table-card" bind:this={section} onscrollcapture={() => onclose?.()}>
 	<h2 class="table-card__title hb-text-body-a">{table.title}</h2>
 
-	<Table {columns} {rows} {minWidth}>
+	<!-- Delete: a column of its own (40px), or floating over the end of a wide table. -->
+	<Table {columns} {rows} {minWidth} actions={deleteButton} actionsWidth={table.wide ? 0 : 40}>
 		{#snippet toolbar()}
 			<TableToolbar>
+				<!-- "All filters" (only when there are more columns than tags): switch tags on and off. -->
+				{#if manyColumns}
+					<span class="anchor">
+						<Button icon="tune" label="Filters" onclick={(event) => toggleMenu(event, 'all')} />
+						{#if openMenu === 'all'}
+							<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+							<div
+								class="anchor__menu anchor__menu--checks"
+								onclick={(event) => event.stopPropagation()}
+							>
+								<Menu label="Filters to show">
+									{#each table.columns as column (column.id)}
+										<Checkbox
+											checked={tags.includes(column.id)}
+											onchange={() => toggleTag(column.id)}>{column.title}</Checkbox
+										>
+									{/each}
+								</Menu>
+							</div>
+						{/if}
+					</span>
+				{/if}
+
 				<SearchChip bind:value={query} placeholder="Search in {table.title.toLowerCase()}" />
 
-				{#each table.filters.map(columnOf) as column (column.id)}
+				{#each tags.map(columnOf) as column (column.id)}
 					<span class="anchor">
 						<FilterChip
 							name={column.title}
@@ -191,6 +256,10 @@
 					</span>
 				{/each}
 
+				{#if Object.keys(chosen).length}
+					<Button mode="ghost" onclick={() => (chosen = {})}>Reset</Button>
+				{/if}
+
 				{#snippet end()}
 					<Button icon="plus" label="Add a row" onclick={() => notBuilt('Adding a row')} />
 				{/snippet}
@@ -209,6 +278,18 @@
 					onedit={(event) => edit(row, column, event)}
 				/>
 			</span>
+		{/snippet}
+
+		{#snippet deleteButton(row)}
+			<Button
+				mode="ghost"
+				icon="delete"
+				label="Delete the row"
+				onclick={() => {
+					onclose?.();
+					ondelete?.(row);
+				}}
+			/>
 		{/snippet}
 
 		{#snippet empty()}
@@ -234,14 +315,13 @@
 </section>
 
 <style>
-	/* Figma "Example": a white card with a 1px line, 16px above and below, 8px at the sides. */
+	/* Figma "Example": a white card, 16px above and below, 8px at the sides. */
 	.table-card {
 		position: relative; /* the edit card hangs in it */
 		display: flex;
 		flex-direction: column;
 		gap: 12px;
 		padding: 16px 8px;
-		border: 1px solid var(--uncolorful-grey-border);
 		border-radius: var(--radius-l);
 		background: var(--uncolorful-grey-surface);
 		--table-surface: var(--uncolorful-grey-surface); /* pinned cells: the colour of the card */
@@ -267,31 +347,26 @@
 		z-index: 20;
 		min-width: 200px;
 	}
+	/* Checkbox rows inside the "all filters" list get a little room at the sides. */
+	.anchor__menu--checks :global(.hb-check) {
+		margin: 0 4px;
+		padding-inline-end: 12px;
+		white-space: nowrap;
+	}
 
 	/* ---------- Rows that need attention (Figma "3-0-unsaved-changes") ----------
-	   A row that holds a marked cell is tinted, with a 2px line at its start; a step
-	   stronger under the mouse. Square ends: the line would look odd on a rounded corner.
+	   A row that holds a marked cell is tinted; a step stronger under the mouse.
 	   (:global — the rows and cells are drawn by the library Table.) */
 	.table-card :global(tbody tr:has([data-row='warning']) td) {
 		background: var(--shitpile-orange-90);
-		border-radius: 0;
 	}
 	.table-card :global(tbody tr:has([data-row='warning']):hover td) {
 		background: var(--shitpile-orange-80);
 	}
 	.table-card :global(tbody tr:has([data-row='error']) td) {
 		background: var(--traffic-light-red-90);
-		border-radius: 0;
 	}
 	.table-card :global(tbody tr:has([data-row='error']):hover td) {
 		background: var(--traffic-light-red-80);
-	}
-	.table-card :global(tbody tr:has([data-row='warning']) td:first-child) {
-		border-inline-start: 2px solid var(--shitpile-orange-50);
-		padding-inline-start: 10px; /* 12 − the 2px line: the text does not move */
-	}
-	.table-card :global(tbody tr:has([data-row='error']) td:first-child) {
-		border-inline-start: 2px solid var(--traffic-light-red-50);
-		padding-inline-start: 10px;
 	}
 </style>

@@ -197,11 +197,10 @@ export const groups = [
 /* ---------- Tables: lists of records, every cell editable ----------
 	Figma:  sbertech-habibi → page "abac-r5" → "1-0-abtract" → "Example" (the table under the groups)
 
-	One table:  { id, title, columns, rows, filters, wide }
+	One table:  { id, title, columns, rows, wide }
 	  columns   like attributes: { id, title, type, options?, required?, maxlength? },
 	            plus how the table shows them: width (px), pinned
 	  rows      { id, <column id>: value, … }
-	  filters   ids of the columns that get a filter chip in the table's toolbar
 	  wide      true = wider than the page: it scrolls sideways, the first column stays
 
 	A cell is edited like an attribute. Its key in the values is "table/row/column",
@@ -225,7 +224,6 @@ export const tables = [
 	{
 		id: 'assignments',
 		title: 'Assignments',
-		filters: ['status', 'skills', 'department', 'offices'],
 		columns: [
 			{
 				id: 'position',
@@ -279,7 +277,6 @@ export const tables = [
 		id: 'grants',
 		title: 'Access grants',
 		wide: true,
-		filters: ['role', 'clearance', 'environments'],
 		columns: [
 			{
 				id: 'resource',
@@ -481,8 +478,9 @@ export const roles = [
 /**
  * The attributes as JSON, as they are now (changes included):
  *   { personal: { fullName: …, … }, …, assignments: [ { position: …, … }, … ], … }
+ * `deletedRows`: keys of table rows to leave out ("table/row").
  */
-export function jsonOf(values) {
+export function jsonOf(values, deletedRows = []) {
 	const json = {};
 	for (const group of groups) {
 		json[group.title.toLowerCase()] = Object.fromEntries(
@@ -490,11 +488,13 @@ export function jsonOf(values) {
 		);
 	}
 	for (const table of tables) {
-		json[table.id] = table.rows.map((row) =>
-			Object.fromEntries(
-				table.columns.map((column) => [column.id, values[cellOf(table, row, column).id]])
-			)
-		);
+		json[table.id] = table.rows
+			.filter((row) => !deletedRows.includes(`${table.id}/${row.id}`))
+			.map((row) =>
+				Object.fromEntries(
+					table.columns.map((column) => [column.id, values[cellOf(table, row, column).id]])
+				)
+			);
 	}
 	return json;
 }
