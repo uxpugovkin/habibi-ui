@@ -10,6 +10,7 @@
 
 	proto.data    what the server "answered" when the page opened:  "ready" | "loading" | "error"
 	proto.save    what the server "answers" to Save:  "success" | "failure"
+	              (failure: it does not accept the changes — the changed rows turn red, "Error")
 	proto.theme   "light" | "dark" | "olive" | "olive-night".  Figma draws ABAC in olive
 	proto.rtl     true = right-to-left
 	proto.toast   the message on screen now: { text, type } or null

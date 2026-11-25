@@ -197,11 +197,12 @@ export const groups = [
 /* ---------- Tables: lists of records, every cell editable ----------
 	Figma:  sbertech-habibi → page "abac-r5" → "1-0-abtract" → "Example" (the table under the groups)
 
-	One table:  { id, title, columns, rows, wide }
+	One table:  { id, title, columns, rows, wide, after }
 	  columns   like attributes: { id, title, type, options?, required?, maxlength? },
 	            plus how the table shows them: width (px), pinned
 	  rows      { id, <column id>: value, … }
 	  wide      true = wider than the page: it scrolls sideways, the first column stays
+	  after     the title of the group it comes right after. Without it: after all groups
 
 	A cell is edited like an attribute. Its key in the values is "table/row/column",
 	e.g. "assignments/2/skills" (see cellOf).
@@ -276,6 +277,7 @@ export const tables = [
 	{
 		id: 'grants',
 		title: 'Access grants',
+		after: 'Personal',
 		wide: true,
 		columns: [
 			{

@@ -25,7 +25,8 @@
 	It started as a copy of the user page of /abac-to-be. What it keeps: the header, the tabs,
 	the JSON switch. What is new: the toolbar of Figma (search, Group, Status, Value) and editing.
 
-	The page reads `proto.data` (loading · error) and `proto.save` (what Save answers).
+	The page reads `proto.data` (loading · error) and `proto.save` (what Save answers:
+	with "Fails" the server says no to every change, and those rows turn red, "Error").
 -->
 <script>
 	import {
@@ -75,9 +76,19 @@
 	// What the page shows: the saved values with the changes on top.
 	let values = $derived({ ...saved, ...changes });
 
+	// Changes the "server" did not accept (Save with "Save: Fails" in the state panel).
+	// { id: true }. Changing the value again clears it.
+	let rejected = $state({});
+
 	function statusOf(attribute) {
 		if (!(attribute.id in changes)) return 'default';
-		return problemOf(attribute, changes[attribute.id]) ? 'error' : 'not-saved';
+		return problemFor(attribute) ? 'error' : 'not-saved';
+	}
+
+	// What is wrong with the value now: a mistake in it, or the server said no.
+	function problemFor(attribute) {
+		if (rejected[attribute.id]) return 'The server did not accept this value';
+		return problemOf(attribute, values[attribute.id]);
 	}
 
 	let changedCount = $derived(Object.keys(changes).length + deleting.length);
@@ -92,6 +103,7 @@
 
 	// A new value for one attribute. Back to what is saved = no change any more.
 	function change(attribute, value) {
+		delete rejected[attribute.id]; // a new value: the server has not said no to it yet
 		if (sameValue(value, saved[attribute.id])) {
 			delete changes[attribute.id];
 		} else {
@@ -142,13 +154,16 @@
 		// The "server" answers after a moment; what it answers is set in the state panel.
 		setTimeout(() => {
 			saving = false;
+			// The server says no to every change: those rows turn red, "Error".
 			if (proto.save === 'failure') {
-				notify("Couldn't save the changes. Try again", 'error');
+				rejected = Object.fromEntries(Object.keys(changes).map((id) => [id, true]));
+				notify("The server didn't accept the changes. Fix the red rows", 'error');
 				return;
 			}
 			const count = changedCount;
 			saved = { ...saved, ...changes };
 			changes = {};
+			rejected = {};
 			deleted = [...deleted, ...deleting];
 			deleting = [];
 			notify(count === 1 ? 'Change saved' : `${count} changes saved`, 'success');
@@ -158,6 +173,7 @@
 	function discard() {
 		editing = '';
 		changes = {};
+		rejected = {};
 		deleting = [];
 		notify('Changes discarded');
 	}
@@ -226,6 +242,21 @@
 	);
 	// The tables have a search and filters of their own; only the Group filter hides them.
 	let shownTables = $derived(tables.filter((table) => !groupFilter || table.title === groupFilter));
+
+	// What the page shows, in order: each group, followed by the tables placed right after
+	// it (`after` in data.js); then the other tables. Each item is { group } or { table }.
+	let sections = $derived.by(() => {
+		const list = [];
+		for (const group of groups) {
+			const shown = shownGroups.find((other) => other.title === group.title);
+			if (shown) list.push({ group: shown });
+			for (const table of shownTables.filter((other) => other.after === group.title)) {
+				list.push({ table });
+			}
+		}
+		for (const table of shownTables.filter((other) => !other.after)) list.push({ table });
+		return list;
+	});
 
 	function clearFilters() {
 		query = '';
@@ -396,50 +427,50 @@
 				</EmptyState>
 			</div>
 		{:else}
-			{#each shownGroups as group (group.title)}
-				<section class="group">
-					<h2 class="group__title hb-text-body-a">{group.title}</h2>
-					{#each group.attributes as attribute (attribute.id)}
-						<AttributeRow
-							{attribute}
-							value={values[attribute.id]}
-							status={statusOf(attribute)}
-							open={editing === attribute.id}
-							onedit={() => openCard(attribute)}
-						>
-							{#snippet card()}
-								<EditCard
-									{attribute}
-									bind:value={() => values[attribute.id], (value) => change(attribute, value)}
-									problem={problemOf(attribute, values[attribute.id])}
-									onclose={(undo) => closeCard(undo, attribute)}
-								/>
-							{/snippet}
-						</AttributeRow>
-					{/each}
-				</section>
-			{/each}
-
-			{#each shownTables as table (table.id)}
-				<EditableTable
-					{table}
-					{values}
-					{statusOf}
-					{editing}
-					hidden={[...deleted, ...deleting]}
-					onedit={openCard}
-					ondelete={(row) => deleteRow(table, row)}
-					onclose={() => (editing = '')}
-				>
-					{#snippet card(cell)}
-						<EditCard
-							attribute={cell}
-							bind:value={() => values[cell.id], (value) => change(cell, value)}
-							problem={problemOf(cell, values[cell.id])}
-							onclose={(undo) => closeCard(undo, cell)}
-						/>
-					{/snippet}
-				</EditableTable>
+			{#each sections as section (section.group?.title ?? section.table.id)}
+				{#if section.group}
+					<section class="group">
+						<h2 class="group__title hb-text-body-a">{section.group.title}</h2>
+						{#each section.group.attributes as attribute (attribute.id)}
+							<AttributeRow
+								{attribute}
+								value={values[attribute.id]}
+								status={statusOf(attribute)}
+								open={editing === attribute.id}
+								onedit={() => openCard(attribute)}
+							>
+								{#snippet card()}
+									<EditCard
+										{attribute}
+										bind:value={() => values[attribute.id], (value) => change(attribute, value)}
+										problem={problemFor(attribute)}
+										onclose={(undo) => closeCard(undo, attribute)}
+									/>
+								{/snippet}
+							</AttributeRow>
+						{/each}
+					</section>
+				{:else}
+					<EditableTable
+						table={section.table}
+						{values}
+						{statusOf}
+						{editing}
+						hidden={[...deleted, ...deleting]}
+						onedit={openCard}
+						ondelete={(row) => deleteRow(section.table, row)}
+						onclose={() => (editing = '')}
+					>
+						{#snippet card(cell)}
+							<EditCard
+								attribute={cell}
+								bind:value={() => values[cell.id], (value) => change(cell, value)}
+								problem={problemFor(cell)}
+								onclose={(undo) => closeCard(undo, cell)}
+							/>
+						{/snippet}
+					</EditableTable>
+				{/if}
 			{/each}
 		{/if}
 	{:else if tab === 'roles'}

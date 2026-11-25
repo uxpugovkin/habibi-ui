@@ -357,18 +357,16 @@
 	/* ---------- Rows that need attention (Figma "3-0-unsaved-changes") ----------
 	   A row that holds a marked cell is tinted, a step stronger under the mouse, with a
 	   2px line at its start. Every cell takes the colour, the pinned ones and the delete
-	   column too. Square ends: the line would look odd on a rounded corner.
+	   column too. The ends stay round, like every row of the table.
 	   (:global — the rows and cells are drawn by the library Table.) */
 	.table-card :global(tbody tr:has([data-row='warning']) td) {
 		background: var(--shitpile-orange-90);
-		border-radius: 0;
 	}
 	.table-card :global(tbody tr:has([data-row='warning']):hover td) {
 		background: var(--shitpile-orange-80);
 	}
 	.table-card :global(tbody tr:has([data-row='error']) td) {
 		background: var(--traffic-light-red-90);
-		border-radius: 0;
 	}
 	.table-card :global(tbody tr:has([data-row='error']):hover td) {
 		background: var(--traffic-light-red-80);

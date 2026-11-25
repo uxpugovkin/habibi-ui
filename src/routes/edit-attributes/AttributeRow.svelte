@@ -102,14 +102,12 @@
 	.row--error.row--open {
 		background: var(--traffic-light-red-80);
 	}
-	/* Changed or wrong: a 2px line at the start of the row. Square ends there,
+	/* Changed or wrong: a 2px line at the start of the row (the corners stay round),
 	   and 2px less padding, so the text does not move. */
 	.row--not-saved,
 	.row--error {
 		padding-inline-start: 6px;
 		border-inline-start: 2px solid var(--shitpile-orange-50);
-		border-start-start-radius: 0;
-		border-end-start-radius: 0;
 	}
 	.row--error {
 		border-inline-start-color: var(--traffic-light-red-50);

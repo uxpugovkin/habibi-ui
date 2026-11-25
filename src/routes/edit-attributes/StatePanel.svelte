@@ -4,6 +4,7 @@
 
 		Data      Ready · Loading · Error   what the server "answered" when the page opened
 		Save      Saves · Fails             what the server answers to "Save"
+		                                    (Fails: the changed rows turn red, "Error")
 		Theme     Light · Dark · Olive · Olive Night
 		Right-to-left
 
