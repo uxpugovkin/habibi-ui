@@ -325,26 +325,28 @@
 </section>
 
 <style>
-	/* Figma "Example": a white card, 16px above and below, 8px at the sides. */
+	/* Figma "Example": a white card, 12px above and below, 8px at the sides,
+	   12px between the title, the toolbar and the table. */
 	.table-card {
 		position: relative; /* the edit card hangs in it */
 		display: flex;
 		flex-direction: column;
 		gap: 12px;
-		padding: 16px 8px;
+		padding: 12px 8px;
 		border-radius: var(--radius-l);
 		background: var(--uncolorful-grey-surface);
 		--table-surface: var(--uncolorful-grey-surface); /* pinned cells: the colour of the card */
 	}
+	/* Like the name of a group: 4px above and below, 12px at the sides. */
 	.table-card__title {
 		margin: 0;
-		padding-inline: 8px;
+		padding: 4px 12px;
 		color: var(--uncolorful-grey-primary);
 	}
-	/* The toolbar sits 16px from the sides of the card (8 of the card + 8 here), like
-	   the title; the table itself only 8. (:global — the Table draws the toolbar's box.) */
+	/* Figma "Tool-Bar": 12px at the sides, so the tags line up with the title and with the
+	   text of the first column (8 of the card + 12). (:global — the Table draws its box.) */
 	.table-card :global(.hb-table__top) {
-		padding-inline: 8px;
+		padding-inline: 12px;
 	}
 	.table-card__edit {
 		position: absolute;

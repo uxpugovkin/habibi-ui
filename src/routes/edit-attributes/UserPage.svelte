@@ -595,7 +595,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 4px;
-		padding: 8px 8px 10px;
+		padding: 12px 8px;
 		border-radius: var(--radius-m);
 		background: var(--uncolorful-grey-surface);
 	}
@@ -604,7 +604,7 @@
 	}
 	.group__title {
 		margin: 0;
-		padding: 4px 8px;
+		padding: 4px 12px;
 		color: var(--uncolorful-grey-primary);
 	}
 	.skeleton-row {

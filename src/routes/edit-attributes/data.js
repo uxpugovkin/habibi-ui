@@ -205,14 +205,8 @@ export const groups = [
 	  after     the title of the group it comes right after. Without it: after all groups
 
 	A cell is edited like an attribute. Its key in the values is "table/row/column",
-	e.g. "assignments/2/skills" (see cellOf).
+	e.g. "grants/2/scopes" (see cellOf).
 */
-
-const assignmentStatuses = [
-	{ value: 'active', label: 'Active' },
-	{ value: 'planned', label: 'Planned' },
-	{ value: 'ended', label: 'Ended' }
-];
 
 const grantRoles = [
 	{ value: 'viewer', label: 'Viewer' },
@@ -222,58 +216,6 @@ const grantRoles = [
 ];
 
 export const tables = [
-	{
-		id: 'assignments',
-		title: 'Assignments',
-		columns: [
-			{
-				id: 'position',
-				title: 'Position',
-				type: 'text',
-				width: 200,
-				required: true,
-				maxlength: 60
-			},
-			{ id: 'offices', title: 'Offices', type: 'multi', options: offices },
-			{ id: 'skills', title: 'Skills', type: 'array' },
-			{ id: 'department', title: 'Department', type: 'enum', options: departments, width: 180 },
-			{ id: 'status', title: 'Status', type: 'enum', options: assignmentStatuses, width: 120 }
-		],
-		rows: [
-			{
-				id: 1,
-				position: 'Lead security analyst',
-				offices: ['berlin', 'amsterdam'],
-				skills: ['Incident response', 'Threat hunting'],
-				department: 'security-ops',
-				status: 'active'
-			},
-			{
-				id: 2,
-				position: 'SOC mentor',
-				offices: ['berlin'],
-				skills: ['Training', 'Playbooks'],
-				department: 'security-ops',
-				status: 'active'
-			},
-			{
-				id: 3,
-				position: 'Audit liaison',
-				offices: ['amsterdam', 'lisbon'],
-				skills: ['SOC 2', 'ISO 27001'],
-				department: 'risk',
-				status: 'planned'
-			},
-			{
-				id: 4,
-				position: 'Access reviewer',
-				offices: ['dubai'],
-				skills: ['Access reviews'],
-				department: 'identity',
-				status: 'ended'
-			}
-		]
-	},
 	{
 		id: 'grants',
 		title: 'Access grants',
@@ -371,7 +313,7 @@ export const tables = [
 
 /**
  * One cell of a table, ready to be edited like an attribute: its column, with the
- * key of the cell as `id` ("assignments/2/skills").
+ * key of the cell as `id` ("grants/2/scopes").
  */
 export function cellOf(table, row, column) {
 	return { ...column, id: `${table.id}/${row.id}/${column.id}` };
@@ -491,7 +433,7 @@ export const roles = [
 
 /**
  * The attributes as JSON, as they are now (changes included):
- *   { personal: { fullName: …, … }, …, assignments: [ { position: …, … }, … ], … }
+ *   { personal: { fullName: …, … }, …, grants: [ { resource: …, … }, … ] }
  * `deletedRows`: keys of table rows to leave out ("table/row").
  */
 export function jsonOf(values, deletedRows = []) {
