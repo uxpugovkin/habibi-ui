@@ -17,6 +17,8 @@
 		statusOf   tells the status of a cell: "default" | "not-saved" | "error"
 		editing    the key of the cell whose card is open ('' = none)
 		hidden     keys of rows that are deleted ("table/row"): left out
+		onlyStatus the Status filter of the page: "not-saved" | "error" | '' (all rows).
+		           The row whose card is open always stays, so it cannot vanish while edited
 		onedit     called with a cell when its value is clicked
 		ondelete   called with a row when its delete button is clicked
 		onclose    called when the card should close (the table was scrolled)
@@ -49,7 +51,7 @@
 		Table,
 		TableToolbar
 	} from '#lib';
-	import { cellOf, textOf, optionOf } from './data.js';
+	import { cellOf, statusOfRow, textOf, optionOf } from './data.js';
 	import { notBuilt } from './prototype.svelte.js';
 	import Value from './Value.svelte';
 
@@ -59,6 +61,7 @@
 		statusOf,
 		editing = '',
 		hidden = [],
+		onlyStatus = '',
 		onedit,
 		ondelete,
 		onclose,
@@ -94,10 +97,14 @@
 	/* ---------- Which rows need attention ---------- */
 
 	function rowStatus(row) {
-		const statuses = table.columns.map((column) => statusOf(cellOf(table, row, column)));
-		if (statuses.includes('error')) return 'error';
-		if (statuses.includes('not-saved')) return 'warning';
-		return '';
+		return statusOfRow(table, row, statusOf);
+	}
+
+	// The page's Status filter. The row being edited stays, whatever its status turns into.
+	function fitsStatus(row) {
+		if (!onlyStatus) return true;
+		if (editing.startsWith(`${table.id}/${row.id}/`)) return true;
+		return rowStatus(row) === onlyStatus;
 	}
 
 	/* ---------- Search and filters ---------- */
@@ -152,7 +159,10 @@
 	}
 
 	let rows = $derived(
-		table.rows.filter((row) => !hidden.includes(`${table.id}/${row.id}`)).filter(fits)
+		table.rows
+			.filter((row) => !hidden.includes(`${table.id}/${row.id}`))
+			.filter(fitsStatus)
+			.filter(fits)
 	);
 
 	function toggleMenu(event, id) {
@@ -269,7 +279,7 @@
 		<!-- The Table hands over its own column ({ key, label, … }); ours has the datatype. -->
 		{#snippet cell(row, tableColumn)}
 			{@const column = columnOf(tableColumn.key)}
-			<!-- The mark of the row ('', "warning" or "error"): the CSS below colours the row. -->
+			<!-- The mark of the row ("default", "not-saved" or "error"): the CSS below colours the row. -->
 			<span class="mark" data-row={rowStatus(row)}>
 				<Value
 					attribute={column}
@@ -364,10 +374,10 @@
 	   2px line at its start. Every cell takes the colour, the pinned ones and the delete
 	   column too. The ends stay round, like every row of the table.
 	   (:global — the rows and cells are drawn by the library Table.) */
-	.table-card :global(tbody tr:has([data-row='warning']) td) {
+	.table-card :global(tbody tr:has([data-row='not-saved']) td) {
 		background: var(--shitpile-orange-90);
 	}
-	.table-card :global(tbody tr:has([data-row='warning']):hover td) {
+	.table-card :global(tbody tr:has([data-row='not-saved']):hover td) {
 		background: var(--shitpile-orange-80);
 	}
 	.table-card :global(tbody tr:has([data-row='error']) td) {
@@ -376,7 +386,7 @@
 	.table-card :global(tbody tr:has([data-row='error']):hover td) {
 		background: var(--traffic-light-red-80);
 	}
-	.table-card :global(tbody tr:has([data-row='warning']) td:first-child) {
+	.table-card :global(tbody tr:has([data-row='not-saved']) td:first-child) {
 		border-inline-start: 2px solid var(--shitpile-orange-50);
 		padding-inline-start: 10px; /* 12 − the 2px line: the text does not move */
 	}

@@ -49,6 +49,7 @@
 		groups,
 		tables,
 		cellOf,
+		statusOfRow,
 		roles,
 		startingValues,
 		copyOf,
@@ -220,6 +221,9 @@
 	}
 
 	function fits(attribute) {
+		// The attribute being edited stays, whatever its status turns into while typing.
+		if (attribute.id === editing) return true;
+
 		const words = query.trim().toLowerCase();
 		const value = values[attribute.id];
 		const status = statusOf(attribute);
@@ -240,8 +244,24 @@
 			.map((group) => ({ ...group, attributes: group.attributes.filter(fits) }))
 			.filter((group) => group.attributes.length)
 	);
-	// The tables have a search and filters of their own; only the Group filter hides them.
-	let shownTables = $derived(tables.filter((table) => !groupFilter || table.title === groupFilter));
+	// The tables have a search and filters of their own. Of the page's filters, Group picks
+	// the tables, and Status picks their rows (a table with no such rows hides).
+	// Search and Value are for the attributes only.
+	let shownTables = $derived(
+		tables.filter(
+			(table) =>
+				(!groupFilter || table.title === groupFilter) &&
+				(!statusFilter || table.rows.some((row) => rowFitsStatus(table, row)))
+		)
+	);
+
+	// A table row and the Status filter: the row being edited counts as fitting.
+	function rowFitsStatus(table, row) {
+		const key = `${table.id}/${row.id}`;
+		if ([...deleted, ...deleting].includes(key)) return false;
+		if (editing.startsWith(`${key}/`)) return true;
+		return statusOfRow(table, row, statusOf) === statusFilter;
+	}
 
 	// What the page shows, in order: each group, followed by the tables placed right after
 	// it (`after` in data.js); then the other tables. Each item is { group } or { table }.
@@ -457,6 +477,7 @@
 						{statusOf}
 						{editing}
 						hidden={[...deleted, ...deleting]}
+						onlyStatus={statusFilter}
 						onedit={openCard}
 						ondelete={(row) => deleteRow(section.table, row)}
 						onclose={() => (editing = '')}

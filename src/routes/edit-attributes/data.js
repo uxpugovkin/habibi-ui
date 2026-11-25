@@ -377,6 +377,18 @@ export function cellOf(table, row, column) {
 	return { ...column, id: `${table.id}/${row.id}/${column.id}` };
 }
 
+/**
+ * The status of a whole table row, from the statuses of its cells:
+ * "error" if any cell is wrong, else "not-saved" if any is changed, else "default".
+ * `statusOf` tells the status of one cell (the page knows it).
+ */
+export function statusOfRow(table, row, statusOf) {
+	const statuses = table.columns.map((column) => statusOf(cellOf(table, row, column)));
+	if (statuses.includes('error')) return 'error';
+	if (statuses.includes('not-saved')) return 'not-saved';
+	return 'default';
+}
+
 /* ---------- Working with values ---------- */
 
 /** The saved values of all attributes and table cells: { id: value }. A fresh copy every time. */
