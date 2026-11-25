@@ -206,6 +206,25 @@ export const content = {
 			{ value: 'owner', label: { en: 'Owner', ar: 'مالك' } },
 			{ value: 'guest', label: { en: 'Guest', ar: 'ضيف' } }
 		],
+		projects: { en: 'Projects', ar: 'المشاريع' },
+		projectOptions: [
+			{
+				value: 'atlas',
+				label: { en: 'Atlas', ar: 'أطلس' },
+				subtitle: { en: 'Identity platform', ar: 'منصة الهوية' }
+			},
+			{
+				value: 'kestrel',
+				label: { en: 'Kestrel', ar: 'العوسق' },
+				subtitle: { en: 'SIEM migration', ar: 'ترحيل SIEM' }
+			},
+			{
+				value: 'lumen',
+				label: { en: 'Lumen', ar: 'لومن' },
+				subtitle: { en: 'Audit tooling', ar: 'أدوات التدقيق' }
+			}
+		],
+		chosen: { en: (count) => `${count} chosen`, ar: (count) => `تم اختيار ${count}` },
 		// Checkbox, Radio, Switch, Slider
 		title: { en: 'Title', ar: 'العنوان' },
 		subtitle: { en: 'Subtitle', ar: 'عنوان فرعي' },

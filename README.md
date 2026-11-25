@@ -4,7 +4,7 @@ The **habibi-library** design system, moved from Figma into code — plus the pr
 
 - **Design system** → `src/lib` (tokens + Svelte components)
 - **Live docs** → the `/ds` page: every token and component, in all four themes and in right-to-left
-- **Prototypes** → one folder each under `src/routes` (`/abac-as-is`, `/abac-to-be` and `/rego-playground`)
+- **Prototypes** → one folder each under `src/routes` (`/abac-as-is`, `/abac-to-be`, `/rego-playground` and `/edit-attributes`)
 
 Built with [Svelte 5](https://svelte.dev) and SvelteKit. Plain JavaScript and plain CSS — no TypeScript, no CSS framework.
 
@@ -55,6 +55,7 @@ src/
     abac-as-is/                 the ABAC prototype as designed today  →  /abac-as-is
     abac-to-be/                 its copy where changes are tried out  →  /abac-to-be
     rego-playground/            Flow Designer's Rego sandbox          →  /rego-playground
+    edit-attributes/            editing a user's attributes in place  →  /edit-attributes
     (your-prototype)/           prototypes go here, one folder each
 ```
 

@@ -53,6 +53,16 @@
 		</span>
 		<Icon name="arrow-right" />
 	</a>
+	<a class="home__card" href={resolve('/edit-attributes')}>
+		<Icon name="edit" />
+		<span>
+			<strong class="hb-text-body-b-bold">ABAC · Edit attributes</strong>
+			<span class="hb-text-body-c"
+				>Change a user's attributes in place: an edit card for every datatype, then Save or Discard.</span
+			>
+		</span>
+		<Icon name="arrow-right" />
+	</a>
 </main>
 
 <style>

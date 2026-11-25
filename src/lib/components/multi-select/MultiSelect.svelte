@@ -16,14 +16,26 @@
 		Options can also have a separate value and label:
 		<MultiSelect options={[{ value: 'ru', label: 'Russian' }, { value: 'en', label: 'English' }]} bind:value={langs} />
 
+		Options with a second line, and a short summary in the box instead of tags
+		(Figma "select", the multi variant: "5 chosen"):
+		<MultiSelect
+			options={[{ value: 'atlas', label: 'Atlas', subtitle: 'Identity platform' }, …]}
+			summary="{projects.length} chosen"
+			bind:value={projects}
+		/>
+
 	Props:
 		value        the chosen values, as a list. Use bind:value to read the choice
-		options      the list. Either plain texts, or objects { value, label, disabled }
+		options      the list. Either plain texts, or objects { value, label, subtitle, disabled }.
+		             An option with a `subtitle` is drawn as a drop-list row: its label, the
+		             subtitle under it, a tick when chosen. The others are checkboxes
 		label        text above the box (inside the box when `big`)
 		placeholder  grey text shown while nothing is chosen
 		hint         small help text under the box
 		error        error message under the box. When set, the field turns red
 		icon         icon name at the start of the box (optional)
+		summary      text shown in the box INSTEAD of the tags, e.g. "5 chosen" (optional).
+		             Only while something is chosen; with nothing chosen the placeholder shows
 		max          the most options that can be chosen (optional). Once reached, the other
 		             options cannot be ticked, and a "2 / 3" counter shows under the box
 		big          true = tall version (Figma "compact = False"). Default false
@@ -32,6 +44,7 @@
 	How it behaves:
 		- a click on the box opens the list; a click anywhere else, or Esc, closes it
 		- ticking a row adds a tag, unticking removes it; the list stays open
+		  (options with a subtitle: clicking the row adds or removes its tick)
 		- with many tags the box grows taller, the tags wrap to new lines
 
 	The look of the box lives in ../field/field.css (shared with TextInput and Select);
@@ -41,6 +54,7 @@
 	import Icon from '../icon/Icon.svelte';
 	import Tag from '../tag/Tag.svelte';
 	import Menu from '../menu/Menu.svelte';
+	import MenuItem from '../menu/MenuItem.svelte';
 	import Checkbox from '../checkbox/Checkbox.svelte';
 	import '../field/field.css';
 	import './multi-select.css';
@@ -53,6 +67,7 @@
 		hint = '',
 		error = '',
 		icon = '',
+		summary = '',
 		max = 0,
 		big = false,
 		disabled = false,
@@ -95,14 +110,18 @@
 	}}
 />
 
-<!-- The tags, or the placeholder while nothing is chosen. Used in both sizes below. -->
+<!-- The tags (or the summary), or the placeholder while nothing is chosen. Used in both sizes below. -->
 {#snippet content()}
 	<span class="hb-multi-select__tags">
-		{#each chosen as item}
-			<Tag {disabled}>{item.label}</Tag>
+		{#if summary && chosen.length}
+			<span class="hb-multi-select__summary">{summary}</span>
 		{:else}
-			<span class="hb-multi-select__placeholder">{placeholder}</span>
-		{/each}
+			{#each chosen as item}
+				<Tag {disabled}>{item.label}</Tag>
+			{:else}
+				<span class="hb-multi-select__placeholder">{placeholder}</span>
+			{/each}
+		{/if}
 	</span>
 {/snippet}
 
@@ -141,16 +160,26 @@
 		<Icon name="chevron-down" size={20} class="hb-field__chevron" />
 	</button>
 
-	<!-- The list: one checkbox per option. -->
+	<!-- The list: one row per option — a checkbox, or a drop-list row when it has a subtitle. -->
 	{#if open}
 		<div class="hb-multi-select__list">
 			<Menu label={label || placeholder}>
 				{#each items as item}
-					<Checkbox
-						checked={value.includes(item.value)}
-						disabled={item.disabled || isLocked(item)}
-						onchange={() => toggle(item)}>{item.label}</Checkbox
-					>
+					{#if item.subtitle}
+						<!-- With a second line: a drop-list row, with a tick when chosen. -->
+						<MenuItem
+							subtitle={item.subtitle}
+							checked={value.includes(item.value)}
+							disabled={item.disabled || isLocked(item)}
+							onclick={() => toggle(item)}>{item.label}</MenuItem
+						>
+					{:else}
+						<Checkbox
+							checked={value.includes(item.value)}
+							disabled={item.disabled || isLocked(item)}
+							onchange={() => toggle(item)}>{item.label}</Checkbox
+						>
+					{/if}
 				{/each}
 			</Menu>
 		</div>

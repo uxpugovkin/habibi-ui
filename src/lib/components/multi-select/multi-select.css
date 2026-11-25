@@ -44,6 +44,10 @@
 	flex-wrap: wrap;
 	gap: 4px;
 }
+.hb-multi-select__summary {
+	color: var(--uncolorful-grey-primary);
+	font: var(--text-body-c);
+}
 .hb-multi-select__placeholder {
 	color: var(--field-placeholder);
 	font: var(--text-body-c);

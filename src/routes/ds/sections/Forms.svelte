@@ -18,6 +18,7 @@
 	let skills = $state(['Go', 'API', 'SQL']);
 	let offices = $state([]);
 	let roles = $state(['admin', 'auditor', 'editor', 'viewer', 'owner']);
+	let projects = $state(['atlas', 'kestrel']);
 
 	let agree = $state(true);
 	let updates = $state(false);
@@ -61,7 +62,7 @@
 <Demo
 	title="MultiSelect"
 	figma="input → combobox"
-	about="Pick several options from a list. The chosen ones are shown as tags; the box grows when they need more lines."
+	about="Pick several options from a list. The chosen ones are shown as tags; the box grows when they need more lines. With `summary` the box only says how many are chosen, and options may have a second line."
 >
 	<div class="grid">
 		<MultiSelect
@@ -91,6 +92,13 @@
 			placeholder={t.choose}
 			options={t.roleOptions}
 			bind:value={roles}
+		/>
+		<MultiSelect
+			label={t.projects}
+			placeholder={t.choose}
+			options={t.projectOptions}
+			summary={t.chosen(projects.length)}
+			bind:value={projects}
 		/>
 	</div>
 </Demo>
