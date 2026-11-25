@@ -44,11 +44,8 @@
 	aria-label="Edit {attribute.title}"
 	onclick={edit}
 >
-	<!-- Small cards (multi) sit 4px apart; texts with dots between them, 12px. -->
-	<span
-		class="value__pieces hb-text-body-c"
-		class:value__pieces--cards={attribute.type === 'multi'}
-	>
+	<!-- Values, dots, small cards and the pencil: all 6px apart (Figma "array", "array-multi"). -->
+	<span class="value__pieces hb-text-body-c">
 		{#if isEmpty(value)}
 			<span class="value__empty">—</span>
 		{:else if attribute.type === 'enum'}
@@ -91,10 +88,7 @@
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
-		gap: 4px 12px;
-	}
-	.value__pieces--cards {
-		gap: 4px;
+		gap: 6px;
 	}
 	.value__dot,
 	.value__empty {

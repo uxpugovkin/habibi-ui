@@ -53,7 +53,8 @@
 </div>
 
 <style>
-	/* Figma "row": 40px at least, the title 200px wide, the value takes the rest.
+	/* Figma "row": 40px at least, 4px above and below, 12px at the sides, 8px between
+	   the parts; the title 200px wide, the value takes the rest.
 	   Every colour change fades in 0.3s ("Dissolve, ease out" in the Figma prototype). */
 	.row {
 		position: relative; /* the edit card is placed under it */
@@ -61,15 +62,15 @@
 		align-items: center;
 		gap: 8px;
 		min-height: 40px;
-		padding: 4px 8px;
+		padding: 4px 12px;
 		border-radius: var(--radius-s);
 		transition: background-color 0.3s ease-out;
 	}
+	/* The title is primary (dark) in every state. */
 	.row__title {
 		flex: none;
 		width: 200px;
-		color: var(--uncolorful-grey-tertiary);
-		transition: color 0.3s ease-out;
+		color: var(--uncolorful-grey-primary);
 	}
 	.row__end {
 		margin-inline-start: auto;
@@ -79,10 +80,6 @@
 	.row--default:hover,
 	.row--default.row--open {
 		background: var(--boring-blue-90);
-	}
-	.row--default:hover .row__title,
-	.row--default.row--open .row__title {
-		color: var(--boring-blue-60);
 	}
 
 	/* ---------- Changed, not saved yet: orange ---------- */
@@ -103,29 +100,24 @@
 		background: var(--traffic-light-red-80);
 	}
 	/* Changed or wrong: a 2px line at the start of the row (the corners stay round),
-	   and 2px less padding, so the text does not move. */
+	   and 10px of padding instead of 12, so the text does not move. */
 	.row--not-saved,
 	.row--error {
-		padding-inline-start: 6px;
+		padding-inline-start: 10px;
 		border-inline-start: 2px solid var(--shitpile-orange-50);
 	}
 	.row--error {
 		border-inline-start-color: var(--traffic-light-red-50);
 	}
-	/* Changed or wrong: the title turns primary (dark), as in Figma. */
-	.row--not-saved .row__title,
-	.row--error .row__title {
-		color: var(--uncolorful-grey-primary);
-	}
 
 	.row__value {
 		min-width: 0;
 	}
-	/* 8 + 200 + 8: under the value, not under the title. */
+	/* 12 + 200 + 8: under the value, not under the title. */
 	.row__card {
 		position: absolute;
 		top: calc(100% + 4px);
-		inset-inline-start: 216px;
+		inset-inline-start: 220px;
 		z-index: 30;
 	}
 </style>
