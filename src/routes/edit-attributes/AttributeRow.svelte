@@ -94,7 +94,7 @@
 		background: var(--shitpile-orange-80);
 	}
 
-	/* ---------- The change is wrong: red (the title stays orange, as in Figma) ---------- */
+	/* ---------- The change is wrong: red ---------- */
 	.row--error {
 		background: var(--traffic-light-red-90);
 	}
@@ -112,9 +112,10 @@
 	.row--error {
 		border-inline-start-color: var(--traffic-light-red-50);
 	}
+	/* Changed or wrong: the title turns primary (dark), as in Figma. */
 	.row--not-saved .row__title,
 	.row--error .row__title {
-		color: var(--shitpile-orange-50);
+		color: var(--uncolorful-grey-primary);
 	}
 
 	.row__value {

@@ -331,6 +331,11 @@
 		padding-inline: 8px;
 		color: var(--uncolorful-grey-primary);
 	}
+	/* The toolbar sits 16px from the sides of the card (8 of the card + 8 here), like
+	   the title; the table itself only 8. (:global — the Table draws the toolbar's box.) */
+	.table-card :global(.hb-table__top) {
+		padding-inline: 8px;
+	}
 	.table-card__edit {
 		position: absolute;
 		z-index: 30;

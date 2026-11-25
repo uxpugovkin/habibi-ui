@@ -69,6 +69,16 @@ src/
 5. **Components stay dumb.** They show what they are given and report clicks. They do not fetch, sort
    or remember things — the page does that.
 6. **Readable beats clever.** If a simpler version is a few lines longer, take the simpler version.
+7. **Ask before changing the design system.** Everything in `src/lib` is shared by every product
+   and every prototype. Adding a prop, a variant, a style or a new component there needs a "yes"
+   from the owner first — say what would change and why, then wait.
+   Prototypes and docs pages (`src/routes`) may be changed freely.
+
+   > **For AI assistants (Claude, Copilot, Cursor…): this rule is not optional.**
+   > Never edit, add or delete anything under `src/lib` without asking first and getting an
+   > explicit "yes" in the conversation. Not even "small" or "obvious" changes, and not because
+   > another rule (e.g. "library first") seems to call for it. If a prototype needs something the
+   > library lacks, stop and ask: build it in the library, or keep it local to the prototype?
 
 ## Guidelines
 
