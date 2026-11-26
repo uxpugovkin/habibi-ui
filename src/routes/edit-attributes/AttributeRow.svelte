@@ -53,8 +53,9 @@
 </div>
 
 <style>
-	/* Figma "row": 40px at least, 4px above and below, 12px at the sides, 8px between
-	   the parts; the title 200px wide, the value takes the rest.
+	/* Figma "row" (3262:5595): 40px at least, 4px above and below, 12px at the sides,
+	   8px between the parts; the title 200px wide, the value takes the rest.
+	   It runs from edge to edge of its card, so it has square corners.
 	   Every colour change fades in 0.3s ("Dissolve, ease out" in the Figma prototype). */
 	.row {
 		position: relative; /* the edit card is placed under it */
@@ -63,14 +64,13 @@
 		gap: 8px;
 		min-height: 40px;
 		padding: 4px 12px;
-		border-radius: var(--radius-s);
 		transition: background-color 0.3s ease-out;
 	}
-	/* The title is primary (dark) in every state. */
+	/* The title is secondary grey in every state. */
 	.row__title {
 		flex: none;
 		width: 200px;
-		color: var(--uncolorful-grey-primary);
+		color: var(--uncolorful-grey-secondary);
 	}
 	.row__end {
 		margin-inline-start: auto;
@@ -99,8 +99,8 @@
 	.row--error.row--open {
 		background: var(--traffic-light-red-80);
 	}
-	/* Changed or wrong: a 2px line at the start of the row (the corners stay round),
-	   and 10px of padding instead of 12, so the text does not move. */
+	/* Changed or wrong: a 2px line at the start of the row, and 10px of padding instead
+	   of 12, so the text does not move. */
 	.row--not-saved,
 	.row--error {
 		padding-inline-start: 10px;

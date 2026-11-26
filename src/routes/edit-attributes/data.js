@@ -199,7 +199,8 @@ export const groups = [
 
 	One table:  { id, title, columns, rows, wide, after }
 	  columns   like attributes: { id, title, type, options?, required?, maxlength? },
-	            plus how the table shows them: width (px), pinned
+	            plus how the table shows them: width (px), pinned.
+	            The first column has no width: it is always 200px (see EditableTable)
 	  rows      { id, <column id>: value, … }
 	  wide      true = wider than the page: it scrolls sideways, the first column stays
 	  after     the title of the group it comes right after. Without it: after all groups
@@ -226,7 +227,6 @@ export const tables = [
 				id: 'resource',
 				title: 'Resource',
 				type: 'text',
-				width: 180,
 				pinned: true,
 				required: true,
 				maxlength: 40

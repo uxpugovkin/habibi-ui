@@ -54,6 +54,7 @@
 	import { cellOf, statusOfRow, textOf, optionOf } from './data.js';
 	import { notBuilt } from './prototype.svelte.js';
 	import Value from './Value.svelte';
+	import Section from './Section.svelte';
 
 	let {
 		table,
@@ -69,22 +70,22 @@
 	} = $props();
 
 	const CARD_WIDTH = 272; // see EditCard
+	const FIRST_COLUMN = 200; // px — as wide as the titles of the attribute rows, so they line up
 	const MAX_TAGS = 4; // filter tags in the toolbar at most (table guide)
 
 	/* ---------- Columns, as the library Table wants them ---------- */
 
+	// The first column is always 200px; the others take the width set in data.js.
 	let columns = $derived(
-		table.columns.map((column) => ({
+		table.columns.map((column, index) => ({
 			key: column.id,
 			label: column.title,
-			width: column.width,
+			width: index === 0 ? FIRST_COLUMN : column.width,
 			pinned: column.pinned
 		}))
 	);
 	// A wide table is as wide as all its columns: wider than the page, so it scrolls sideways.
-	let minWidth = $derived(
-		table.wide ? table.columns.reduce((sum, column) => sum + column.width, 0) : 0
-	);
+	let minWidth = $derived(table.wide ? columns.reduce((sum, column) => sum + column.width, 0) : 0);
 
 	function columnOf(key) {
 		return table.columns.find((column) => column.id === key);
@@ -186,21 +187,21 @@
 
 	/* ---------- The edit card: under the clicked cell ----------
 	   The table cuts what sticks out of its cells and scrolls sideways, so the card is
-	   not drawn inside the cell: it hangs in this section, at the place of the cell. */
+	   not drawn inside the cell: it hangs in the box around the table, at the place of the cell. */
 
-	let section;
+	let box; // the box around the table
 	let openCell = $state(null); // the cell whose card is open
-	let place = $state({ top: 0, start: 0 }); // where the card hangs in the section, px
+	let place = $state({ top: 0, start: 0 }); // where the card hangs in the box, px
 
 	function edit(row, column, event) {
 		const cell = event.currentTarget.closest('td').getBoundingClientRect();
-		const box = section.getBoundingClientRect();
-		const rightToLeft = getComputedStyle(section).direction === 'rtl';
-		const start = rightToLeft ? box.right - cell.right : cell.left - box.left;
+		const area = box.getBoundingClientRect();
+		const rightToLeft = getComputedStyle(box).direction === 'rtl';
+		const start = rightToLeft ? area.right - cell.right : cell.left - area.left;
 		place = {
-			top: cell.bottom - box.top + 4,
-			// The card stays inside the section, also under the last column.
-			start: Math.min(start, box.width - CARD_WIDTH - 8)
+			top: cell.bottom - area.top + 4,
+			// The card stays inside the box, also under the last column.
+			start: Math.min(start, area.width - CARD_WIDTH - 8)
 		};
 		openCell = cellOf(table, row, column);
 		onedit?.(openCell);
@@ -210,145 +211,133 @@
 <!-- A click anywhere else closes the filter list. -->
 <svelte:window onclick={() => (openMenu = '')} />
 
-<!-- Scrolling the table sideways would leave the card behind: it closes (keeping its value). -->
-<section class="table-card" bind:this={section} onscrollcapture={() => onclose?.()}>
-	<h2 class="table-card__title hb-text-body-a">{table.title}</h2>
+<!-- Title, toolbar and table: 12px apart (Figma "Example"). -->
+<Section title={table.title} gap={12}>
+	<!-- Scrolling the table sideways would leave the card behind: it closes (keeping its value). -->
+	<div class="table-box" bind:this={box} onscrollcapture={() => onclose?.()}>
+		<!-- Delete: a column of its own (40px), pinned to the far side. -->
+		<Table {columns} {rows} {minWidth} actions={deleteButton} actionsWidth={40}>
+			{#snippet toolbar()}
+				<TableToolbar>
+					<!-- "All filters" (only when there are more columns than tags): switch tags on and off. -->
+					{#if manyColumns}
+						<span class="anchor">
+							<Button icon="tune" label="Filters" onclick={(event) => toggleMenu(event, 'all')} />
+							{#if openMenu === 'all'}
+								<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+								<div
+									class="anchor__menu anchor__menu--checks"
+									onclick={(event) => event.stopPropagation()}
+								>
+									<Menu label="Filters to show">
+										{#each table.columns as column (column.id)}
+											<Checkbox
+												checked={tags.includes(column.id)}
+												onchange={() => toggleTag(column.id)}>{column.title}</Checkbox
+											>
+										{/each}
+									</Menu>
+								</div>
+							{/if}
+						</span>
+					{/if}
 
-	<!-- Delete: a column of its own (40px), pinned to the far side. -->
-	<Table {columns} {rows} {minWidth} actions={deleteButton} actionsWidth={40}>
-		{#snippet toolbar()}
-			<TableToolbar>
-				<!-- "All filters" (only when there are more columns than tags): switch tags on and off. -->
-				{#if manyColumns}
-					<span class="anchor">
-						<Button icon="tune" label="Filters" onclick={(event) => toggleMenu(event, 'all')} />
-						{#if openMenu === 'all'}
-							<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
-							<div
-								class="anchor__menu anchor__menu--checks"
-								onclick={(event) => event.stopPropagation()}
-							>
-								<Menu label="Filters to show">
-									{#each table.columns as column (column.id)}
-										<Checkbox
-											checked={tags.includes(column.id)}
-											onchange={() => toggleTag(column.id)}>{column.title}</Checkbox
-										>
-									{/each}
-								</Menu>
-							</div>
-						{/if}
-					</span>
-				{/if}
+					<SearchChip bind:value={query} placeholder="Search in {table.title.toLowerCase()}" />
 
-				<SearchChip bind:value={query} placeholder="Search in {table.title.toLowerCase()}" />
+					{#each tags.map(columnOf) as column (column.id)}
+						<span class="anchor">
+							<FilterChip
+								name={column.title}
+								value={chosenLabel(column)}
+								onclick={(event) => toggleMenu(event, column.id)}
+								onclear={() => unchoose(column.id)}
+							/>
+							{#if openMenu === column.id}
+								<div class="anchor__menu">
+									<Menu label={column.title}>
+										{#each choicesOf(column) as option (option.value)}
+											<MenuItem
+												checked={chosen[column.id] === option.value}
+												onclick={() => choose(column.id, option.value)}>{option.label}</MenuItem
+											>
+										{/each}
+									</Menu>
+								</div>
+							{/if}
+						</span>
+					{/each}
 
-				{#each tags.map(columnOf) as column (column.id)}
-					<span class="anchor">
-						<FilterChip
-							name={column.title}
-							value={chosenLabel(column)}
-							onclick={(event) => toggleMenu(event, column.id)}
-							onclear={() => unchoose(column.id)}
-						/>
-						{#if openMenu === column.id}
-							<div class="anchor__menu">
-								<Menu label={column.title}>
-									{#each choicesOf(column) as option (option.value)}
-										<MenuItem
-											checked={chosen[column.id] === option.value}
-											onclick={() => choose(column.id, option.value)}>{option.label}</MenuItem
-										>
-									{/each}
-								</Menu>
-							</div>
-						{/if}
-					</span>
-				{/each}
+					{#if Object.keys(chosen).length}
+						<Button mode="ghost" onclick={() => (chosen = {})}>Reset</Button>
+					{/if}
 
-				{#if Object.keys(chosen).length}
-					<Button mode="ghost" onclick={() => (chosen = {})}>Reset</Button>
-				{/if}
+					{#snippet end()}
+						<Button icon="plus" label="Add a row" onclick={() => notBuilt('Adding a row')} />
+					{/snippet}
+				</TableToolbar>
+			{/snippet}
 
-				{#snippet end()}
-					<Button icon="plus" label="Add a row" onclick={() => notBuilt('Adding a row')} />
-				{/snippet}
-			</TableToolbar>
-		{/snippet}
+			<!-- The Table hands over its own column ({ key, label, … }); ours has the datatype. -->
+			{#snippet cell(row, tableColumn)}
+				{@const column = columnOf(tableColumn.key)}
+				<!-- The mark of the row ("default", "not-saved" or "error"): the CSS below colours the row. -->
+				<span class="mark" data-row={rowStatus(row)}>
+					<Value
+						attribute={column}
+						value={valueOf(row, column)}
+						open={editing === cellOf(table, row, column).id}
+						onedit={(event) => edit(row, column, event)}
+					/>
+				</span>
+			{/snippet}
 
-		<!-- The Table hands over its own column ({ key, label, … }); ours has the datatype. -->
-		{#snippet cell(row, tableColumn)}
-			{@const column = columnOf(tableColumn.key)}
-			<!-- The mark of the row ("default", "not-saved" or "error"): the CSS below colours the row. -->
-			<span class="mark" data-row={rowStatus(row)}>
-				<Value
-					attribute={column}
-					value={valueOf(row, column)}
-					open={editing === cellOf(table, row, column).id}
-					onedit={(event) => edit(row, column, event)}
+			{#snippet deleteButton(row)}
+				<Button
+					mode="ghost"
+					icon="delete"
+					label="Delete the row"
+					onclick={() => {
+						onclose?.();
+						ondelete?.(row);
+					}}
 				/>
-			</span>
-		{/snippet}
+			{/snippet}
 
-		{#snippet deleteButton(row)}
-			<Button
-				mode="ghost"
-				icon="delete"
-				label="Delete the row"
-				onclick={() => {
-					onclose?.();
-					ondelete?.(row);
-				}}
-			/>
-		{/snippet}
+			{#snippet empty()}
+				<EmptyState
+					type="not-found"
+					title="No matching rows"
+					description="Try another word, or clear the filters."
+				>
+					<Button appearance="accent" mode="primary" onclick={clearFilters}>Clear filters</Button>
+				</EmptyState>
+			{/snippet}
+		</Table>
 
-		{#snippet empty()}
-			<EmptyState
-				type="not-found"
-				title="No matching rows"
-				description="Try another word, or clear the filters."
+		{#if openCell && editing === openCell.id}
+			<div
+				class="table-box__edit"
+				style:top="{place.top}px"
+				style:inset-inline-start="{place.start}px"
 			>
-				<Button appearance="accent" mode="primary" onclick={clearFilters}>Clear filters</Button>
-			</EmptyState>
-		{/snippet}
-	</Table>
-
-	{#if openCell && editing === openCell.id}
-		<div
-			class="table-card__edit"
-			style:top="{place.top}px"
-			style:inset-inline-start="{place.start}px"
-		>
-			{@render card?.(openCell)}
-		</div>
-	{/if}
-</section>
+				{@render card?.(openCell)}
+			</div>
+		{/if}
+	</div>
+</Section>
 
 <style>
-	/* Figma "Example": a white card, 12px above and below, 8px at the sides,
-	   12px between the title, the toolbar and the table. */
-	.table-card {
-		position: relative; /* the edit card hangs in it */
-		display: flex;
-		flex-direction: column;
-		gap: 12px;
-		padding: 12px 8px;
-		border-radius: var(--radius-l);
-		background: var(--uncolorful-grey-surface);
+	/* The box around the toolbar and the table: the edit card hangs in it. */
+	.table-box {
+		position: relative;
 		--table-surface: var(--uncolorful-grey-surface); /* pinned cells: the colour of the card */
 	}
-	/* Like the name of a group: 4px above and below, 12px at the sides. */
-	.table-card__title {
-		margin: 0;
-		padding: 4px 12px;
-		color: var(--uncolorful-grey-primary);
-	}
-	/* Figma "Tool-Bar": 12px at the sides, so the tags line up with the title and with the
-	   text of the first column (8 of the card + 12). (:global — the Table draws its box.) */
-	.table-card :global(.hb-table__top) {
+	/* Figma "Tool-Bar": 12px at the sides, like the titles and the text of the cells.
+	   (:global — the Table draws the toolbar's box.) */
+	.table-box :global(.hb-table__top) {
 		padding-inline: 12px;
 	}
-	.table-card__edit {
+	.table-box__edit {
 		position: absolute;
 		z-index: 30;
 	}
@@ -371,28 +360,32 @@
 		white-space: nowrap;
 	}
 
-	/* ---------- Rows that need attention (Figma "3-0-unsaved-changes") ----------
-	   A row that holds a marked cell is tinted, a step stronger under the mouse, with a
-	   2px line at its start. Every cell takes the colour, the pinned ones and the delete
-	   column too. The ends stay round, like every row of the table.
+	/* ---------- Rows: the same states as the attribute rows (Figma "row") ----------
+	   Rows run from edge to edge of the card, so their ends are square, like the
+	   attribute rows. A row that holds a marked cell is tinted, a step stronger under
+	   the mouse, with a 2px line at its start. Every cell takes the colour, the pinned
+	   ones and the delete column too.
 	   (:global — the rows and cells are drawn by the library Table.) */
-	.table-card :global(tbody tr:has([data-row='not-saved']) td) {
+	.table-box :global(tbody td) {
+		border-radius: 0;
+	}
+	.table-box :global(tbody tr:has([data-row='not-saved']) td) {
 		background: var(--shitpile-orange-90);
 	}
-	.table-card :global(tbody tr:has([data-row='not-saved']):hover td) {
+	.table-box :global(tbody tr:has([data-row='not-saved']):hover td) {
 		background: var(--shitpile-orange-80);
 	}
-	.table-card :global(tbody tr:has([data-row='error']) td) {
+	.table-box :global(tbody tr:has([data-row='error']) td) {
 		background: var(--traffic-light-red-90);
 	}
-	.table-card :global(tbody tr:has([data-row='error']):hover td) {
+	.table-box :global(tbody tr:has([data-row='error']):hover td) {
 		background: var(--traffic-light-red-80);
 	}
-	.table-card :global(tbody tr:has([data-row='not-saved']) td:first-child) {
+	.table-box :global(tbody tr:has([data-row='not-saved']) td:first-child) {
 		border-inline-start: 2px solid var(--shitpile-orange-50);
 		padding-inline-start: 10px; /* 12 − the 2px line: the text does not move */
 	}
-	.table-card :global(tbody tr:has([data-row='error']) td:first-child) {
+	.table-box :global(tbody tr:has([data-row='error']) td:first-child) {
 		border-inline-start: 2px solid var(--traffic-light-red-50);
 		padding-inline-start: 10px;
 	}

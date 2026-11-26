@@ -114,7 +114,7 @@
 		margin-inline-start: 0;
 		overflow: hidden;
 		opacity: 0;
-		color: var(--uncolorful-grey-secondary);
+		color: var(--uncolorful-grey-primary);
 		transition:
 			width 0.3s ease-out,
 			margin 0.3s ease-out,

@@ -64,6 +64,7 @@
 	import AttributeRow from './AttributeRow.svelte';
 	import EditCard from './EditCard.svelte';
 	import EditableTable from './EditableTable.svelte';
+	import Section from './Section.svelte';
 	import JsonCode from './JsonCode.svelte';
 
 	/* ---------- Values: what is saved, and what was changed but not saved yet ---------- */
@@ -410,15 +411,16 @@
 		</div>
 
 		{#if proto.data === 'loading'}
-			<section class="group" aria-busy="true">
-				<Skeleton width={160} />
+			<!-- Grey bars where the title and the rows will be, in the same places. -->
+			<Section aria-busy="true">
+				<div class="skeleton skeleton--title"><Skeleton width={160} /></div>
 				{#each { length: 6 } as _}
-					<div class="skeleton-row">
-						<Skeleton width={120} />
+					<div class="skeleton">
+						<span class="skeleton__title"><Skeleton width={120} /></span>
 						<Skeleton width="45%" />
 					</div>
 				{/each}
-			</section>
+			</Section>
 		{:else if proto.data === 'error'}
 			<div class="fill">
 				<EmptyState
@@ -449,8 +451,7 @@
 		{:else}
 			{#each sections as section (section.group?.title ?? section.table.id)}
 				{#if section.group}
-					<section class="group">
-						<h2 class="group__title hb-text-body-a">{section.group.title}</h2>
+					<Section title={section.group.title}>
 						{#each section.group.attributes as attribute (attribute.id)}
 							<AttributeRow
 								{attribute}
@@ -469,7 +470,7 @@
 								{/snippet}
 							</AttributeRow>
 						{/each}
-					</section>
+					</Section>
 				{:else}
 					<EditableTable
 						table={section.table}
@@ -495,13 +496,13 @@
 			{/each}
 		{/if}
 	{:else if tab === 'roles'}
-		<section class="group group--table">
+		<Section>
 			<Table columns={roleColumns} rows={roles}>
 				{#snippet cell(row, column)}
 					{#if column.key === 'role'}<Tag size="s">{row.role}</Tag>{:else}{row[column.key]}{/if}
 				{/snippet}
 			</Table>
-		</section>
+		</Section>
 	{:else}
 		<div class="fill">
 			<EmptyState
@@ -590,29 +591,20 @@
 		place-items: center;
 	}
 
-	/* Figma "Section": a white card with one group of attributes. */
-	.group {
+	/* The loading bars sit where the title and the rows will be (see Section, AttributeRow). */
+	.skeleton {
 		display: flex;
-		flex-direction: column;
-		gap: 4px;
-		padding: 12px 8px;
-		border-radius: var(--radius-m);
-		background: var(--uncolorful-grey-surface);
-	}
-	.group--table {
-		padding: 0 0 8px;
-	}
-	.group__title {
-		margin: 0;
-		padding: 4px 12px;
-		color: var(--uncolorful-grey-primary);
-	}
-	.skeleton-row {
-		display: flex;
-		gap: 88px;
+		gap: 8px;
 		align-items: center;
 		min-height: 40px;
-		padding: 4px 8px;
+		padding: 4px 12px;
+	}
+	.skeleton--title {
+		min-height: 36px;
+	}
+	.skeleton__title {
+		flex: none;
+		width: 200px;
 	}
 
 	/* Figma "Frame 30": Save and Discard at the bottom of the page.
